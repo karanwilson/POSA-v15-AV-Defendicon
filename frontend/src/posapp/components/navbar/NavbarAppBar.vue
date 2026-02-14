@@ -21,6 +21,7 @@
 				:class="['pos-text-primary nav-icon', isRtl ? 'rtl-nav-icon' : 'ltr-nav-icon']"
 			/>
 
+			<!-- <v-avatar></v-avatar> -->
 			<v-img
 				:src="branding.logo || posLogo"
 				:alt="branding.name"
@@ -45,7 +46,9 @@
 					<span class="pos-navbar-title-compact">{{ branding.shortName }}</span>
 				</template>
 				<template v-else>
-					<span class="pos-navbar-title-light">{{ branding.name }}</span>
+					<span class="font-weight-light pos-navbar-title-light">{{ __("POS") }}</span>
+					<span class="pos-navbar-title-bold">{{ __("Awesome") }}</span>
+					<span class="font-weight-light pos-navbar-title-light">{{ __("Auroville") }}</span>
 				</template>
 			</v-toolbar-title>
 		</div>
