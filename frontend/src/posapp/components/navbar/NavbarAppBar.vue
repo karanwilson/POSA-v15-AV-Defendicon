@@ -20,13 +20,15 @@
 				:class="['pos-text-primary nav-icon', isRtl ? 'rtl-nav-icon' : 'ltr-nav-icon']"
 			/>
 
-			<v-img
-				:src="posLogo"
-				alt="POS Awesome"
-				:max-width="isMobile ? 24 : 32"
-				:class="['pos-navbar-logo', isRtl ? 'rtl-logo' : 'ltr-logo']"
-				loading="lazy"
-			/>
+			<v-avatar>
+				<v-img
+					:src="posLogo"
+					alt="POS Awesome"
+					:max-width="isMobile ? 24 : 32"
+					:class="['pos-navbar-logo', isRtl ? 'rtl-logo' : 'ltr-logo']"
+					loading="lazy"
+				/>
+			</v-avatar>
 
 			<v-toolbar-title
 				@click="$emit('go-desk')"
@@ -44,8 +46,9 @@
 					<span class="pos-navbar-title-compact">{{ __("POS") }}</span>
 				</template>
 				<template v-else>
-					<span class="font-weight-light pos-navbar-title-light">{{ __("POS") }}</span
-					><span class="pos-navbar-title-bold">{{ __("Awesome") }}</span>
+					<span class="font-weight-light pos-navbar-title-light">{{ __("POS") }}</span>
+					<span class="pos-navbar-title-bold">{{ __("Awesome") }}</span>
+					<span class="font-weight-light pos-navbar-title-light">{{ __("Auroville") }}</span>
 				</template>
 			</v-toolbar-title>
 		</div>
