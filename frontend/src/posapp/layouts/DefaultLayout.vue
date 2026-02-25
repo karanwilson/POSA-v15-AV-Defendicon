@@ -5,6 +5,8 @@
 		<v-main class="main-content">
 			<ClosingDialog />
 			<Navbar
+				:fs-online="fsOnline"
+				:icici-online="iciciOnline"
 				:pos-profile="posProfile"
 				:pending-invoices="pendingInvoicesCount"
 				:last-invoice-id="lastInvoiceId"
@@ -251,6 +253,14 @@ const serverConnecting = ref(false);
 const internetReachable = ref(false);
 const isIpHost = ref(false);
 
+// FS Status
+const fsOnline = ref(false);
+
+// ICICI Status
+const iciciOnline = ref(false);
+
+// Sync data
+const syncTotals = ref({ pending: 0, synced: 0, drafted: 0 });
 const manualOffline = ref(false);
 
 const queueMetrics = useQueueMetrics({
@@ -914,7 +924,71 @@ const initializeData = async () => {
 	markSourceLoaded("init");
 };
 
+const fapiLogin = () => {
+	console.log("fapi_login");
+	const vm = this;
+	frappe.call({
+		method: 'payments.payment_gateways.doctype.fs_settings.fs_settings.login',
+		callback: function (r) {
+			console.log("r.message: ", r.message);
+			if (r.message) {
+				if (r.message == 'OK') {
+					vm.fsOnline = true;
+					console.log("Home.vue vm.fsOnline: ", vm.fsOnline);
+					console.log("Home.vue vm.networkOnline: ", vm.networkOnline);
+				}
+				else {
+				vm.eventBus.emit("show_message", {
+					text: r.message,
+					color: 'error',
+				});
+				}
+			}
+		},
+	});
+}
+
+const iciciPosCheckStatus = () => {
+	const vm = this;
+	frappe.call({
+		method: 'payments.payment_gateways.doctype.upi_settings.upi_settings.icici_check_service',
+		callback: function (r) {
+			if (r.message) {
+				if (r.message["ResponseCode"] == '01') {
+					vm.iciciOnline = true;
+					console.log("Home.vue vm.iciciOnline: ", vm.iciciOnline);
+				}
+				else {
+				vm.evntBus.emit('show_mesage', {
+					text: r.message,
+					color: 'error',
+				});
+				}
+			}
+		},
+	});
+}
+
 const setupEventListeners = () => {
+	// Watch for POS profile becoming available to trigger customer load
+	watch(
+		posProfile,
+		(newProfile) => {
+			if (newProfile && newProfile.name) {
+				if (newProfile.posa_enable_fs_payments) {
+					this.fapi_login();
+					if (newProfile.posa_enable_icici_pos_payments)
+					this.icici_pos_checkStatus();
+				}
+				if (newProfile.posa_input_qty && newProfile.posa_input_weighing_scale) {
+					this.$refs.allow_scale_button.$el.focus(); // request permission for accessing the scale port
+					console.info('request_scale_port');
+				}
+			}
+		},
+		{ deep: true, immediate: true },
+	);
+
 	if (eventBus) {
 		// Track last submitted invoice id
 		// eventBus.on("set_last_invoice", (invoiceId) => {

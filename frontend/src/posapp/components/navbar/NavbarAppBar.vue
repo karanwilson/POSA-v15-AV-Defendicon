@@ -103,6 +103,14 @@
 
 			<!-- Desktop: Show all items normally -->
 			<template v-else>
+				<div class="gadget-wrapper status-gadget">
+					<slot name="fs-indicator"></slot>
+				</div>
+
+				<div class="gadget-wrapper status-gadget">
+					<slot name="icici-indicator"></slot>
+				</div>
+
 				<!-- Enhanced connectivity status indicator (kept outside info menu) -->
 				<div class="gadget-wrapper status-gadget">
 					<slot name="status-indicator"></slot>

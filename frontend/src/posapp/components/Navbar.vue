@@ -14,6 +14,26 @@
 			@show-offline-invoices="showOfflineInvoices = true"
 			@open-employee-switch="openEmployeeSwitch"
 		>
+			<!-- Slot for FS indicator -->
+			<template #fs-indicator>
+				<FsIndicator
+					:network-online="networkOnline"
+					:fs-online="fsOnline"
+					:server-connecting="serverConnecting"
+					:is-ip-host="isIpHost"
+				/>
+			</template>
+
+			<!-- Slot for ICICI indicator -->
+			<template #icici-indicator>
+				<IciciIndicator
+					:network-online="networkOnline"
+					:icici-online="iciciOnline"
+					:server-connecting="serverConnecting"
+					:is-ip-host="isIpHost"
+				/>
+			</template>
+
 			<!-- Slot for status indicator -->
 			<template #status-indicator>
 				<div class="status-entry-surface">
@@ -156,6 +176,8 @@ import NavbarSettingsPanel from "./navbar/NavbarSettingsPanel.vue";
 import NotificationBell from "./navbar/NotificationBell.vue";
 import OfflineStatusPanel from "./navbar/OfflineStatusPanel.vue";
 import StatusIndicator from "./navbar/StatusIndicator.vue";
+import FsIndicator from "./navbar/FsIndicator.vue";
+import IciciIndicator from "./navbar/IciciIndicator.vue";
 import CacheUsageMeter from "./navbar/CacheUsageMeter.vue";
 import AboutDialog from "./navbar/AboutDialog.vue";
 import OfflineInvoices from "./OfflineInvoices.vue";
@@ -228,6 +250,8 @@ export default {
 		NotificationBell,
 		OfflineStatusPanel,
 		StatusIndicator,
+		FsIndicator,
+		IciciIndicator,
 		CacheUsageMeter,
 		AboutDialog,
 		EmployeeSwitchDialog,
@@ -257,6 +281,8 @@ export default {
 			type: Array,
 			default: () => [],
 		},
+		fsOnline: Boolean,
+		iciciOnline: Boolean,
 		syncTotals: {
 			type: Object,
 			default: () => ({ pending: 0, synced: 0, drafted: 0 }),

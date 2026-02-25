@@ -104,7 +104,7 @@ const statusColor = computed(() => {
 	 */
 	if (DEBUG) {
 		console.log(
-			"StatusIndicator - Network:",
+			"ERPNext StatusIndicator - Network:",
 			props.networkOnline,
 			"Server:",
 			props.serverOnline,
@@ -191,7 +191,7 @@ const statusText = computed(() => {
 	const hostType = props.isIpHost ? "Local/IP Host" : "Domain Host";
 
 	if (props.serverConnecting) {
-		return __(`Connecting to server... (${hostType}: ${hostname})`);
+		return __(`Connecting to ERPNext server... (${hostType}: ${hostname})`);
 	}
 
 	if (!props.networkOnline) {
@@ -203,10 +203,10 @@ const statusText = computed(() => {
 	}
 
 	if (props.serverOnline) {
-		return __(`Connected to Server (${hostname})`);
+		return __(`Connected to ERPNext Server (${hostname})`);
 	}
 
-	return __(`Server Offline (${hostname})`);
+	return __(`ERPNext Server Offline (${hostname})`);
 });
 
 const bootstrapWarningTooltipLines = computed(() => {
@@ -234,15 +234,15 @@ const connectivityLabel = computed(() => {
 	}
 
 	if (!props.networkOnline) {
-		return __("Offline");
+		return __("ERP Offline");
 	}
 
 	if (props.networkOnline && props.serverOnline) {
-		return __("Online");
+		return __("ERP Online");
 	}
 
 	// Network is available but server is not responding
-	return __("Limited");
+	return __("ERP Limited");
 });
 </script>
 
