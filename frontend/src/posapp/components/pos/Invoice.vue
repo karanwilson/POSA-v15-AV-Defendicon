@@ -32,11 +32,11 @@
 					{{ __("Invoices saved as POS Invoices") }}
 				</v-alert>
 				<div class="invoice-sections">
-					<div class="invoice-top-grid">
+					<div>
 						<v-card flat class="invoice-section-card pos-themed-card">
-							<div class="invoice-section-heading">
+							<!-- <div class="invoice-section-heading">
 								<h3 class="invoice-section-heading__title">{{ __("Customer Details") }}</h3>
-							</div>
+							</div> -->
 							<InvoiceCustomerSection
 								ref="customerSection"
 								:pos_profile="pos_profile"
@@ -44,15 +44,17 @@
 								v-model="invoiceType"
 							/>
 						</v-card>
+					</div>
 
+					<div class="invoice-meta-grid">
 						<v-card
 							v-if="pos_profile.posa_use_delivery_charges"
 							flat
 							class="invoice-section-card pos-themed-card"
 						>
-							<div class="invoice-section-heading">
+							<!-- <div class="invoice-section-heading">
 								<h3 class="invoice-section-heading__title">{{ __("Delivery Charges") }}</h3>
-							</div>
+							</div> -->
 							<DeliveryCharges
 								ref="deliveryChargesComponent"
 								:pos_profile="pos_profile"
@@ -71,19 +73,15 @@
 								"
 							/>
 						</v-card>
-					</div>
 
-					<div class="invoice-meta-grid">
 						<v-card
 							v-if="pos_profile.posa_allow_change_posting_date"
 							flat
 							class="invoice-section-card pos-themed-card"
 						>
-							<div class="invoice-section-heading">
-								<h3 class="invoice-section-heading__title">
-									{{ __("Posting and Price List") }}
-								</h3>
-							</div>
+							<!-- <div class="invoice-section-heading">
+								<h3 class="invoice-section-heading__title">{{ __("Posting and Price List") }}</h3>
+							</div> -->
 							<PostingDateRow
 								ref="postingDateComponent"
 								:pos_profile="pos_profile"
@@ -108,7 +106,7 @@
 							/>
 						</v-card>
 
-						<v-card
+						<!-- <v-card
 							v-if="pos_profile.posa_allow_multi_currency"
 							flat
 							class="invoice-section-card pos-themed-card"
@@ -143,13 +141,13 @@
 									}
 								"
 							/>
-						</v-card>
+						</v-card> -->
 					</div>
 
 					<v-card flat class="invoice-section-card invoice-items-card pos-themed-card">
-						<div class="invoice-section-heading">
+						<!-- <div class="invoice-section-heading">
 							<h3 class="invoice-section-heading__title">{{ __("Invoice Items") }}</h3>
-						</div>
+						</div> -->
 						<div class="items-table-wrapper">
 							<InvoiceItemsActionToolbar
 								ref="actionToolbar"

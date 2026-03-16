@@ -7,7 +7,7 @@
 			<v-col
 				v-if="!useCompactSaleDock || showReturnDiscountAlert"
 				cols="12"
-				:md="useCompactSaleDock ? 12 : 7"
+				:md="useCompactSaleDock ? 12 : 6"
 			>
 				<v-alert
 					v-if="showReturnDiscountAlert"
@@ -87,7 +87,7 @@
 				</div>
 			</v-col>
 
-			<v-col cols="12" :md="useCompactSaleDock ? 12 : 5" class="invoice-summary-actions">
+			<v-col cols="12" :md="useCompactSaleDock ? 12 : 6" class="invoice-summary-actions">
 				<InvoiceActionButtons
 					:pos_profile="pos_profile"
 					:saveLoading="saveLoading"
