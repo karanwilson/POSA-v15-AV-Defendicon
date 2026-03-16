@@ -245,11 +245,11 @@
 				{{ __("Customer Screen") }}
 			</v-btn>
 		</v-col>
-		<v-col cols="12">
+		<v-col cols="12" sm="6">
 			<v-btn
 				block
 				color="success"
-				size="large"
+				theme="dark"
 				prepend-icon="mdi-credit-card"
 				@click="$emit('show-payment')"
 				class="summary-btn pay-btn"
