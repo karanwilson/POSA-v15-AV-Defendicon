@@ -11,7 +11,8 @@
 					'status-offline': statusColor === 'red',
 				}"
 			>
-				{{ connectivityLabel }}
+				<!-- {{ connectivityLabel }} -->
+				FS Balance
 			</div>
 		</div>
 	</div>
@@ -21,20 +22,24 @@
 import { computed } from "vue";
 
 defineOptions({
-	name: "FsIndicator",
+	name: "FsBalanceIndicator",
 });
 
 interface Props {
 	networkOnline?: boolean;
-	fsOnline?: boolean;
-	serverConnecting?: boolean;
+	fs_balance_available?: string;
+	fs_balance_message?: string;
+	customer: string;
+	//serverConnecting?: boolean;
 	isIpHost?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
 	networkOnline: false,
-	fsOnline: false,
-	serverConnecting: false,
+	fs_balance_available: "",
+	fs_balance_message: "",
+	customer: "",
+	//serverConnecting: false,
 	isIpHost: false,
 });
 
@@ -47,23 +52,46 @@ const statusColor = computed(() => {
 	 * Determines the color of the status icon based on current network and server connectivity.
 	 * @returns {string} A Vuetify color string ('green', 'red').
 	 */
+
+	let fs_balance_available_float: any;
+	if (props.fs_balance_available)
+		fs_balance_available_float = parseFloat(props.fs_balance_available);
+	console.log("props.fs_balance_available: ", props.fs_balance_available);
+	console.log("fs_balance_available_float: ", fs_balance_available_float);
+	console.log("props.customer: ", props.customer);
+	console.log("Test Message");
+
 	if (DEBUG) {
 		console.log(
-			"FS StatusIndicator - Network:",
+			// "FS BalanceIndicator - Network:",
 			props.networkOnline,
-			"Remote FS Server:",
-			props.fsOnline,
-			"Connecting:",
-			props.serverConnecting,
-			"Local IP Host:",
-			props.isIpHost,
+			"FS Balance Available:",
+			//props.fs_balance_available,
+			// "Connecting:",
+			// props.serverConnecting,
+			// "Local IP Host:",
+			// props.isIpHost,
 			"Host:",
 			window.location.hostname,
 		);
 	}
 
 	// Show yellow/orange when connecting
-	if (props.serverConnecting) {
+	// if (props.serverConnecting) {
+	// 	return "orange";
+	// }
+
+	if (props.customer && fs_balance_available_float >= 0) {
+		return fs_balance_available_float > 0 ? "green" : "red"; // FS Balance positive or zero
+	}
+
+	// Invalid FS Balance
+	if (props.customer && fs_balance_available_float < 0) {
+		return "grey";
+	}
+
+	// Remote FS server not reachable
+	if (props.customer && !fs_balance_available_float) {
 		return "orange";
 	}
 
@@ -72,18 +100,8 @@ const statusColor = computed(() => {
 		return props.networkOnline ? "green" : "red";
 	}
 
-	// For domain hosts, require both network and server connectivity
-	if (props.networkOnline && props.fsOnline) {
-		return "green";
-	}
-
-	// Network online but server offline
-	if (props.networkOnline && !props.fsOnline) {
-		return "orange";
-	}
-
-	// Network offline
-	return "red";
+	// Network offline or no FS balance response
+	else return "grey";
 });
 
 const statusIcon = computed(() => {
@@ -96,34 +114,35 @@ const statusIcon = computed(() => {
 			"FS StatusIndicator - Determining icon for network:",
 			props.networkOnline,
 			"Remote FS server:",
-			props.fsOnline,
-			"connecting:",
-			props.serverConnecting,
+			//props.fs_balance_available,
+			// "connecting:",
+			// props.serverConnecting,
 		);
 	}
 
 	// Show loading icon when connecting
-	if (props.serverConnecting) {
-		return "mdi-wifi-sync";
-	}
+	// if (props.serverConnecting) {
+	// 	return "mdi-wifi-sync";
+	// }
 
 	// For IP hosts, show based on network status
 	if (props.isIpHost) {
-		return props.networkOnline ? "mdi-server" : "mdi-network-off";
+		return props.networkOnline ? "mdi-wifi" : "mdi-wifi-off";
 	}
 
 	// Full connectivity
-	if (props.networkOnline && props.fsOnline) {
-		return "mdi-server-network";
-	}
+	// if (props.customer && props.fs_balance_available) {
+	// 	return "mdi-bank";
+	// }
 
 	// Network online but server issues
-	if (props.networkOnline && !props.fsOnline) {
-		return "mdi-server-off";
+	if (props.customer && !props.fs_balance_available) {
+		return "mdi-bank-off";
 	}
 
-	// Network offline
-	return "mdi-wifi-off";
+	// Network offline: color should be orange
+	// Customer not selected: color should be grey
+	return "mdi-bank";
 });
 
 const statusText = computed(() => {
@@ -135,45 +154,51 @@ const statusText = computed(() => {
 	const hostname = window.location.hostname;
 	const hostType = props.isIpHost ? "Local/IP Host" : "Domain Host";
 
-	if (props.serverConnecting) {
-		return __(`Connecting to FS server... (${hostType}: ${hostname})`);
-	}
+	// if (props.serverConnecting) {
+	// 	return __(`Connecting to FS server... (${hostType}: ${hostname})`);
+	// }
 
 	if (!props.networkOnline) {
 		return __(`No Internet Connection (${hostType}: ${hostname})`);
+	}
+
+	if (!props.customer) {
+		return __(`No Customer selected`);
 	}
 
 	if (props.isIpHost) {
 		return __(`Connected to ${hostname}`);
 	}
 
-	if (props.fsOnline) {
+	if (!props.fs_balance_available) return __(props.fs_balance_message);
+
+	else if (props.fs_balance_available) {
 		return __(`Connected to Remote FS Server`);
 	}
 
-	return __(`Remote FS Server Offline; local server: (${hostname})`);
+	else return __(`Remote FS Server Offline; local server: (${hostname})`);
 });
 
 const connectivityLabel = computed(() => {
-	/**
-	 * Short, user-friendly connectivity label for the navbar.
-	 * @returns {string}
-	 */
-	if (props.serverConnecting) {
-		return __("FS Connecting");
-	}
+// 	/**
+// 	 * Short, user-friendly connectivity label for the navbar.
+// 	 * @returns {string}
+// 	 */
+	// if (props.serverConnecting) {
+	// 	return __("FS Connecting");
+	// }
 
 	if (!props.networkOnline) {
 		return __("FS Offline");
 	}
 
-	if (props.networkOnline && props.fsOnline) {
+	if (props.networkOnline && props.fs_balance_available) {
 		return __("FS Online");
 	}
 
 	// Network is available but server is not responding
 	return __("FS Limited");
-});
+	});
 </script>
 
 <style scoped>

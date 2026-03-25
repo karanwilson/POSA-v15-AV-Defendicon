@@ -260,6 +260,7 @@ def get_customer_names(pos_profile, limit=None, offset=None, start_after=None, m
             fields=[
                 "name",
                 "modified",
+                "custom_fs_account_number", # AV Financial Service Account Number
                 "mobile_no",
                 "email_id",
                 "tax_id",
@@ -373,6 +374,7 @@ def get_customer_info(customer=None, company=None):
     res["posa_discount"] = customer.posa_discount
     res["name"] = customer.name
     res["customer_name"] = customer.customer_name
+    res["custom_fs_account_number"] = customer.custom_fs_account_number # AV Financial Service Account Number
     res["customer_group_price_list"] = frappe.get_value(
         "Customer Group", customer.customer_group, "default_price_list"
     )
@@ -444,6 +446,7 @@ def create_customer(
     company,
     pos_profile_doc,
     customer_id=None,
+    custom_fs_account_number=None, # AV Financial Service Account Number
     tax_id=None,
     mobile_no=None,
     email_id=None,
@@ -497,6 +500,7 @@ def create_customer(
                 {
                     "doctype": "Customer",
                     "customer_name": customer_name,
+                    "custom_fs_account_number": custom_fs_account_number,
                     "posa_referral_company": company,
                     "tax_id": tax_id,
                     "mobile_no": mobile_no,
@@ -538,6 +542,7 @@ def create_customer(
     elif method == "update":
         customer_doc = frappe.get_doc("Customer", customer_id)
         customer_doc.customer_name = customer_name
+        customer_doc.custom_fs_account_number = custom_fs_account_number # AV Financial Service Account Number
         customer_doc.tax_id = tax_id
         customer_doc.mobile_no = mobile_no
         customer_doc.email_id = email_id

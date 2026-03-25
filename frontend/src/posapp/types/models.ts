@@ -74,6 +74,15 @@ export interface InvoiceDoc {
   company: string;
   customer: string;
   customer_name?: string;
+  custom_fs_account_number?: string; // AV Financial Service Account
+  custom_fs_transfer_status: string;
+  custom_card_transaction_id: string;
+  custom_upi_transaction_id: string;
+  custom_pos_transfer_status: string;
+  custom_is_donation: boolean;
+  custom_staff_customer_detail: string;
+  custom_transaction_date: string;
+  custom_customer_group: string;
   items: CartItem[];
   payments: Payment[];
   grand_total: number;
@@ -166,6 +175,7 @@ export interface POSProfile {
 export interface Customer {
   name: string;
   customer_name: string;
+  custom_fs_account_number?: string; // AV Financial Service Account
   customer_group: string;
   territory: string;
   email_id?: string;

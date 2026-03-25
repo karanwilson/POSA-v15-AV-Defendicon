@@ -12,7 +12,7 @@ const BASE_SCHEMA = {
 	cache: "&key",
 	items: "&item_code,item_name,item_group,*barcodes,*name_keywords,*serials,*batches",
 	item_prices: "&[price_list+item_code],price_list,item_code",
-	customers: "&name,customer_name,mobile_no,email_id,tax_id",
+	customers: "&name,customer_name,custom_fs_account_number,mobile_no,email_id,tax_id",
 	pos_profiles: "&name",
 	opening_shifts: "&name,user,pos_profile",
 	local_stock: "&key",
@@ -55,7 +55,7 @@ const SCHEMA_V17 = {
 
 const SCHEMA_V18 = {
 	...SCHEMA_V17,
-	customers: "&name,customer_name,mobile_no,email_id,tax_id,*_mobile_search_keys",
+	customers: "&name,customer_name,custom_fs_account_number,mobile_no,email_id,tax_id,*_mobile_search_keys",
 };
 
 const SCHEMA_SIGNATURE = JSON.stringify(SCHEMA_V18);

@@ -2,6 +2,8 @@ import {
 	isOffline,
 	saveCustomerBalance,
 	getCachedCustomerBalance,
+	saveCustomerFsBalance,
+	getCachedCustomerFsBalance,
 } from "../../../../offline/index";
 import { useDiscounts } from "../../../composables/pos/shared/useDiscounts";
 import { resolvePosDocumentDoctype } from "../../../utils/posDocumentMode";
@@ -140,6 +142,88 @@ export async function fetch_customer_balance(context: any) {
 			context.customer_balance_currency = undefined;
 		}
 		context.customer_balance_loading = false;
+	}
+}
+
+export async function fetch_customer_fs_balance(context: any) {
+	try {
+		if (!context.customer) {
+			// reset FS indicators
+			return;
+		}
+
+		// Check if offline and use cached balance
+		if (isOffline()) {
+			const cachedBalance = getCachedCustomerFsBalance(context.customer);
+			if (cachedBalance !== null) {
+				context.fs_balance_available = cachedBalance;
+				return;
+			} else {
+				// No cached balance available in offline mode
+				// FS grey indicator
+				context.toastStore.show({
+					title: __("Customer FS balance unavailable offline"),
+					text: __(
+						"FS Balance will be updated when connection is restored",
+					),
+					color: "warning",
+				});
+				return;
+			}
+		}
+
+		// Online mode: fetch from server and cache the result
+		console.log("context: ", context);
+		console.log("context.customer: ", context.customer);
+		const r = await frappe.call({
+			method: "payments.payment_gateways.doctype.fs_settings.fs_settings.get_account_max_amount",
+			args: { fs_acc_customer: context.customer },
+		});
+
+		const fs_balance_available = (r.message['Result'] == 'OK') ? r.message['maxAmount'] : "";
+		if (r.message['Result'] != 'OK') {
+			context.toastStore.show({
+				title: __("FS API Response"),
+				text: r.message['Result'],
+				color: "error",
+			});
+			return;
+		}
+		if (r.message['maxAmount'] < 0) {
+			context.toastStore.show({
+				title: __("Invalid FS Balance"),
+				text: __("Balance Response: {0}; Balance is less than 0", r.message['Result']),
+				color: "error",
+			});
+			return;
+		}
+
+		console.log("loader.ts fs_balance_available: ", fs_balance_available);
+		console.log("loader.ts r.message['Result']: ", r.message['Result']);
+		context.fs_balance_available = fs_balance_available;
+		context.fs_balance_message = r?.message['Result'];
+
+		// Cache the balanced for offline use
+		saveCustomerFsBalance(context.customer, fs_balance_available);
+	} catch (error) {
+		console.error("Error fetching FS balance:", error);
+
+		// Try to use cached balance as fallback
+		const cachedBalance = getCachedCustomerFsBalance(context.customer);
+		if (cachedBalance !== null) {
+			context.fs_balance_available = cachedBalance;
+			context.toastStore.show({
+				title: __("Using cached FS customer balance"),
+				text: __("Could not fetch latest FS balance from server"),
+				color: "warning",
+			});
+		} else {
+			context.toastStore.show({
+				title: __("Error fetching FS customer balance"),
+				color: "error",
+			});
+			context.fs_balance_available = 0;
+		}
 	}
 }
 

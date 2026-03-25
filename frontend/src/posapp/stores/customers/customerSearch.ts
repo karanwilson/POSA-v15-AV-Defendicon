@@ -91,6 +91,7 @@ export function buildCustomerSearchText(
 
 	return [
 		customer.customer_name,
+		customer.custom_fs_account_number,
 		customer.name,
 		customer.mobile_no,
 		customer.email_id,
@@ -139,6 +140,7 @@ export function customerMatchesSearchTerm(
 
 export type CustomerDuplicateField =
 	| "customer_name"
+	| "custom_fs_account_number"
 	| "mobile_no"
 	| "email_id"
 	| "tax_id";
@@ -150,6 +152,9 @@ export function normalizeCustomerDuplicateValue(
 	const normalized = String(value ?? "")
 		.trim()
 		.toLowerCase();
+	if (field === "custom_fs_account_number") {
+		return normalized.replace(/\s+/g, " ");
+	}
 	if (field === "mobile_no") {
 		return normalized.replace(/\D/g, "");
 	}
@@ -169,6 +174,7 @@ export function getCustomerDuplicateFields(
 ): CustomerDuplicateField[] {
 	const fields: CustomerDuplicateField[] = [
 		...(includeCustomerName ? (["customer_name"] as const) : []),
+		"custom_fs_account_number",
 		"mobile_no",
 		"email_id",
 		"tax_id",

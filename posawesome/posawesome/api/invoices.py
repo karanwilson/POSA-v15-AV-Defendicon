@@ -87,6 +87,7 @@ def get_draft_invoices(
         "name",
         "customer",
         "customer_name",
+        "custom_fs_account_number",
         "posting_date",
         "posting_time",
         "grand_total",

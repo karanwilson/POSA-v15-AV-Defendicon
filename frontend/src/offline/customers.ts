@@ -248,6 +248,7 @@ export async function setCustomerStorage(customers: AnyRecord[]) {
 					existing?.customer_name ||
 					customer.name ||
 					customer.customer,
+				custom_fs_account_number: customer.custom_fs_account_number ?? existing?.custom_fs_account_number,
 				mobile_no: customer.mobile_no ?? existing?.mobile_no,
 				email_id: customer.email_id ?? existing?.email_id,
 				primary_address:
@@ -495,5 +496,64 @@ export function clearExpiredCustomerBalances() {
 		persist("customer_balance_cache");
 	} catch (error) {
 		console.error("Failed to clear expired customer balances", error);
+	}
+}
+
+export function saveCustomerFsBalance(customer: string, fs_balance: number) {
+	try {
+		const cache = memory.customer_fs_balance_cache;
+		cache[customer] = {
+			balance: fs_balance,
+			timestamp: Date.now(),
+		};
+		memory.customer_fs_balance_cache = cache;
+		persist("customer_fs_balance_cache");
+	} catch (error) {
+		console.error("Failed to cache customer fs balance", error);
+	}
+}
+
+export function getCachedCustomerFsBalance(customer: string) {
+	try {
+		const cache = memory.customer_fs_balance_cache || {};
+		const cachedData = cache[customer];
+		if (cachedData) {
+			const isValid =
+				Date.now() - cachedData.timestamp < 24 * 60 * 60 * 1000;
+			return isValid ? cachedData.fs_balance : null;
+		}
+		return null;
+	} catch (error) {
+		console.error("Failed to get cached customer fs balance", error);
+		return null;
+	}
+}
+
+export function clearCustomerFsBalanceCache() {
+	try {
+		memory.customer_fs_balance_cache = {};
+		persist("customer_fs_balance_cache");
+	} catch (error) {
+		console.error("Failed to clear customer fs balance cache", error);
+	}
+}
+
+export function clearExpiredCustomerFsBalances() {
+	try {
+		const cache = memory.customer_fs_balance_cache || {};
+		const now = Date.now();
+		const validCache: AnyRecord = {};
+
+		Object.keys(cache).forEach((customer) => {
+			const cachedData = cache[customer];
+			if (cachedData && now - cachedData.timestamp < 24 * 60 * 60 * 1000) {
+				validCache[customer] = cachedData;
+			}
+		});
+
+		memory.customer_fs_balance_cache = validCache;
+		persist("customer_fs_balance_cache");
+	} catch (error) {
+		console.error("Failed to clear expired customer fs balances", error);
 	}
 }

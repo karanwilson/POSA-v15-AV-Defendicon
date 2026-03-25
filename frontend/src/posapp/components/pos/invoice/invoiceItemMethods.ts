@@ -181,6 +181,9 @@ const invoiceItemMethods: Record<string, unknown> &
 	fetch_customer_balance() {
 		return Loader.fetch_customer_balance(this);
 	},
+	fetch_customer_fs_balance() {
+		return Loader.fetch_customer_fs_balance(this);
+	},
 	load_invoice(data, options) {
 		return Loader.load_invoice(this, data, options);
 	},
