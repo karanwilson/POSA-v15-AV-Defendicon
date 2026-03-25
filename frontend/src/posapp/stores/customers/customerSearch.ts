@@ -28,6 +28,7 @@ export function customerMatchesSearchTerm(
 
 	const values = [
 		customer.customer_name,
+		customer.custom_fs_account_number,
 		customer.name,
 		customer.mobile_no,
 		customer.email_id,

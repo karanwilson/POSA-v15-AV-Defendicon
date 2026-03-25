@@ -52,7 +52,7 @@ const BASE_SCHEMA = {
 	cache: "&key",
 	items: "&item_code,item_name,item_group,*barcodes,*name_keywords,*serials,*batches",
 	item_prices: "&[price_list+item_code],price_list,item_code",
-	customers: "&name,customer_name,mobile_no,email_id,tax_id",
+	customers: "&name,customer_name,custom_fs_account_number,mobile_no,email_id,tax_id",
 	pos_profiles: "&name",
 	opening_shifts: "&name,user,pos_profile",
 	local_stock: "&key",
@@ -260,6 +260,7 @@ const MEMORY_DEFAULTS: AnyRecord = {
 	price_list_meta_cache: {},
 	customer_addresses_cache: {},
 	payment_method_currency_cache: {},
+	customer_fs_balance_cache: {},
 	local_stock_cache: {},
 	stock_cache_ready: false,
 	customer_storage: [],
@@ -691,6 +692,7 @@ export async function clearAllCache() {
 	memory.uom_cache = {};
 	memory.offers_cache = [];
 	memory.customer_balance_cache = {};
+	memory.customer_fs_balance_cache = {};
 	memory.local_stock_cache = {};
 	memory.stock_cache_ready = false;
 	memory.customer_storage = [];

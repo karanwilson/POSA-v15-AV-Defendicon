@@ -1065,6 +1065,7 @@ export function reduceCacheUsage() {
 	memory.price_list_meta_cache = {};
 	memory.customer_addresses_cache = {};
 	memory.payment_method_currency_cache = {};
+	memory.customer_fs_balance_cache = {};
 	memory.local_stock_cache = {};
 	memory.stock_cache_ready = false;
 	memory.coupons_cache = {};
@@ -1080,6 +1081,7 @@ export function reduceCacheUsage() {
 	persist("price_list_meta_cache");
 	persist("customer_addresses_cache");
 	persist("payment_method_currency_cache");
+	persist("customer_fs_balance_cache");
 	persist("local_stock_cache");
 	persist("stock_cache_ready");
 	persist("coupons_cache");

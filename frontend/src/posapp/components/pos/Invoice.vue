@@ -42,7 +42,16 @@
 								:pos_profile="pos_profile"
 								:invoiceTypes="invoiceTypes"
 								v-model="invoiceType"
-							/>
+							>
+								<!-- Slot for FS Balance indicator -->
+								<template #fs-balance-indicator>
+									<FsBalanceIndicator
+										:network-online="networkOnline"
+										:customer="customer"
+										:fs_balance_available="fs_balance_available"
+									/>
+								</template>
+							</InvoiceCustomerSection>
 						</v-card>
 					</div>
 
@@ -266,6 +275,7 @@
 <script>
 import format from "../../format";
 import InvoiceCustomerSection from "./invoice/InvoiceCustomerSection.vue";
+import FsBalanceIndicator from "./customer/FsBalanceIndicator.vue";
 import DeliveryCharges from "./invoice/DeliveryCharges.vue";
 import PostingDateRow from "./invoice/PostingDateRow.vue";
 import MultiCurrencyRow from "./invoice/MultiCurrencyRow.vue";
@@ -384,6 +394,8 @@ export default {
 			customer_balance: 0,
 			customer_balance_currency: undefined,
 			customer_balance_loading: false,
+			fs_balance_available: "",
+			networkOnline: false,
 			total_tax: 0,
 			packed_dialog_items: [],
 			show_packed_dialog: false,
@@ -419,6 +431,7 @@ export default {
 
 	components: {
 		InvoiceCustomerSection,
+		FsBalanceIndicator,
 		DeliveryCharges,
 		PostingDateRow,
 		MultiCurrencyRow,

@@ -39,6 +39,7 @@ interface InvoiceWatchersVm {
 	close_payments: () => void;
 	fetch_customer_details: () => void;
 	fetch_customer_balance: () => void;
+	fetch_customer_fs_balance: () => void;
 	set_delivery_charges: () => void;
 	sync_invoice_customer_details: (_details?: Record<string, unknown>) => void;
 	update_item_detail: (_item: WatcherItem) => void;
@@ -113,6 +114,7 @@ const invoiceWatchers: Record<string, unknown> & ThisType<InvoiceWatchersVm> = {
 		if (hasCustomer) {
 			this.fetch_customer_details();
 			this.fetch_customer_balance();
+			this.fetch_customer_fs_balance();
 		}
 		this.set_delivery_charges();
 		this.sync_invoice_customer_details();

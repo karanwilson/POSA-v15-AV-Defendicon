@@ -41,7 +41,7 @@
 						</v-col>
 					</v-row>
 					<v-row class="mb-3">
-						<v-col cols="12" sm="6">
+						<v-col cols="12" sm="3">
 							<v-text-field
 								color="primary"
 								:label="frappe._('Invoice ID')"
@@ -53,6 +53,28 @@
 							></v-text-field>
 						</v-col>
 						<v-col cols="12" sm="3">
+							<v-text-field
+								color="primary"
+								:label="frappe._('Full FS Account No.*')"
+								class="pos-themed-input"
+								hide-details
+								v-model="custom_fs_account_number"
+								density="compact"
+								clearable
+							></v-text-field>
+						</v-col>
+						<v-col cols="12" sm="2">
+							<v-text-field
+								color="primary"
+								:label="frappe._('Item Code')"
+								class="pos-themed-input"
+								hide-details
+								v-model="item_code"
+								density="compact"
+								clearable
+							></v-text-field>
+						</v-col>
+						<v-col cols="12" sm="2">
 							<VueDatePicker
 								v-model="from_date"
 								model-type="format"
@@ -63,7 +85,7 @@
 								@update:model-value="formatFromDate()"
 							/>
 						</v-col>
-						<v-col cols="12" sm="3">
+						<v-col cols="12" sm="2">
 							<VueDatePicker
 								v-model="to_date"
 								model-type="format"
@@ -78,7 +100,7 @@
 
 					<!-- Customer search fields -->
 					<v-row class="mb-2">
-						<v-col cols="12" sm="6">
+						<v-col cols="12" sm="4">
 							<v-text-field
 								color="primary"
 								:label="frappe._('Customer Name')"
@@ -89,13 +111,24 @@
 								clearable
 							></v-text-field>
 						</v-col>
-						<v-col cols="12" sm="6">
+						<v-col cols="12" sm="4">
 							<v-text-field
 								color="primary"
 								:label="frappe._('Customer ID')"
 								class="pos-themed-input"
 								hide-details
 								v-model="customer_id"
+								density="compact"
+								clearable
+							></v-text-field>
+						</v-col>
+						<v-col cols="12" sm="4">
+							<v-text-field
+								color="primary"
+								:label="frappe._('FS Account')"
+								class="pos-themed-input"
+								hide-details
+								v-model="custom_fs_account_number"
 								density="compact"
 								clearable
 							></v-text-field>
@@ -363,6 +396,7 @@ export default {
 		invoice_name: "",
 		customer_name: "",
 		customer_id: "",
+		custom_fs_account_number: "",
 		mobile_no: "",
 		tax_id: "",
 		from_date: null,
@@ -535,6 +569,7 @@ export default {
 			this.invoice_name = "";
 			this.customer_name = "";
 			this.customer_id = "";
+			this.custom_fs_account_number = "";
 			this.mobile_no = "";
 			this.tax_id = "";
 			this.from_date = null;
@@ -639,6 +674,7 @@ export default {
 				invoice_name: vm.invoice_name,
 				customer_name: vm.customer_name,
 				customer_id: vm.customer_id,
+				custom_fs_account_number: vm.custom_fs_account_number,
 				mobile_no: vm.mobile_no,
 				tax_id: vm.tax_id,
 				from_date: formattedFromDate,
@@ -820,6 +856,7 @@ export default {
 			this.invoice_name = "";
 			this.customer_name = "";
 			this.customer_id = "";
+			this.custom_fs_account_number = "",
 			this.mobile_no = "";
 			this.tax_id = "";
 			this.from_date = null;

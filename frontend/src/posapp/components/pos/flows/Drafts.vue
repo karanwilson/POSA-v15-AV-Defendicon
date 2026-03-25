@@ -168,6 +168,12 @@ export default {
 				sortable: true,
 			},
 			{
+				title: __("FS Account"),
+				value: "custom_fs_account_number",
+				align: "start",
+				sortable: true,
+			},
+			{
 				title: __("Date"),
 				align: "start",
 				sortable: true,

@@ -23,7 +23,7 @@
 				<v-card-text class="pa-0">
 					<v-container>
 						<v-row>
-							<v-col cols="12">
+							<v-col cols="6">
 								<v-text-field
 									ref="customerNameField"
 									density="compact"
@@ -32,6 +32,17 @@
 									hide-details
 									class="pos-themed-input"
 									v-model="customer_name"
+								></v-text-field>
+							</v-col>
+							<!--for search with FS Account Numbers-->
+							<v-col cols="6">
+								<v-text-field
+									density="compact"
+									color="primary"
+									:label="frappe._('FS Account No.')"
+									hide-details
+									class="pos-themed-input"
+									v-model="custom_fs_account_number"
 								></v-text-field>
 							</v-col>
 							<v-col cols="6">
@@ -247,6 +258,7 @@ export default {
 		pos_profile: "",
 		customer_id: "",
 		customer_name: "",
+		custom_fs_account_number: "",
 		tax_id: "",
 		mobile_no: "",
 		address_line1: "",
@@ -411,6 +423,7 @@ export default {
 			// Check if any data has been entered
 			if (
 				this.customer_name ||
+				this.custom_fs_account_number ||
 				this.tax_id ||
 				this.mobile_no ||
 				this.address_line1 ||
@@ -434,6 +447,7 @@ export default {
 		},
 		clear_customer() {
 			this.customer_name = "";
+			this.custom_fs_account_number = "";
 			this.tax_id = "";
 			this.mobile_no = "";
 			this.address_line1 = "";
@@ -587,6 +601,7 @@ export default {
 			const args = {
 				customer_id: this.customer_id,
 				customer_name: this.customer_name,
+				custom_fs_account_number: this.custom_fs_account_number,
 				tax_id: this.tax_id,
 				mobile_no: this.mobile_no,
 				address_line1: this.address_line1,
@@ -616,6 +631,7 @@ export default {
 				await customersStore.addOrUpdateCustomer({
 					name: args.name,
 					customer_name: args.customer_name,
+					custom_fs_account_number: args.custom_fs_account_number,
 					mobile_no: args.mobile_no,
 					email_id: args.email_id,
 					tax_id: args.tax_id,
@@ -643,6 +659,7 @@ export default {
 						await customersStore.addOrUpdateCustomer({
 							name: args.name,
 							customer_name: args.customer_name,
+							custom_fs_account_number: args.custom_fs_account_number,
 							mobile_no: args.mobile_no,
 							email_id: args.email_id,
 							tax_id: args.tax_id,
@@ -709,6 +726,7 @@ export default {
 					if (data) {
 						this.customer_name = data.customer_name || data.name || ""; // fallback
 						this.customer_id = data.name;
+						this.custom_fs_account_number = data.custom_fs_account_number || "";
 						this.address_line1 = data.primary_address || data.address_line1 || "";
 						this.city = data.city || "";
 						this.country =

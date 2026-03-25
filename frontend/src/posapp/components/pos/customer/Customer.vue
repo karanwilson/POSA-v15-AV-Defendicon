@@ -16,6 +16,7 @@
 				:items="filteredCustomers"
 				item-title="customer_name"
 				item-value="name"
+				:item-text="itemText"
 				:no-data-text="customerNoDataText"
 				hide-details
 				:customFilter="() => true"
@@ -81,6 +82,11 @@
 					<v-list-item v-bind="props">
 						<v-list-item-subtitle v-if="item.raw.customer_name !== item.raw.name">
 							<div>ID: {{ item.raw.name }}</div>
+						</v-list-item-subtitle>
+						<!--including custom_fs_account_number in the search-->
+						<v-list-item-subtitle
+							v-if="item.raw.custom_fs_account_number">
+							<div v-html="`FS Account: ${item.raw.custom_fs_account_number}`"></div>
 						</v-list-item-subtitle>
 						<v-list-item-subtitle v-if="item.raw.tax_id">
 							<div>TAX ID: {{ item.raw.tax_id }}</div>
@@ -238,6 +244,7 @@ export default {
 			customerInfo,
 		} = storeToRefs(customersStore);
 
+		//const itemText = ref(null); // to display the Customer's FS account number and community
 		const internalCustomer = ref(null);
 		const tempSelectedCustomer = ref(null);
 		const isMenuOpen = ref(false);
@@ -312,6 +319,11 @@ export default {
 				isReady: hasReadyCustomerCache,
 			});
 		};
+
+		// to display the Customer's FS account number and community
+		const itemText = computed((item) => {
+		return `${item.raw.customer_name}   ${item.raw.custom_fs_account_number}   ${item.raw.address_line1}`;
+		});
 
 		watch(
 			selectedCustomer,
@@ -429,6 +441,7 @@ export default {
 			const inputText = event.target.value?.toLowerCase() || "";
 			const matched = customers.value.find((cust) => {
 				return (
+					cust.custom_fs_account_number?.toLowerCase().includes(inputText) ||
 					cust.customer_name?.toLowerCase().includes(inputText) ||
 					cust.name?.toLowerCase().includes(inputText)
 				);

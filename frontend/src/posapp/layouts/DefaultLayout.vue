@@ -911,6 +911,8 @@ const initializeData = async () => {
 		networkOnline.value = false;
 		serverOnline.value = false;
 		window.serverOnline = false;
+		fsOnline.value = false;
+		iciciOnline.value = false;
 	}
 	evaluateBootstrapSnapshot({
 		allowPrompt: manualOffline.value || !navigator.onLine,
@@ -1037,6 +1039,8 @@ const handleToggleOffline = () => {
 		networkOnline.value = false;
 		serverOnline.value = false;
 		window.serverOnline = false;
+		fsOnline.value = false;
+		iciciOnline.value = false;
 	} else {
 		// checkNetworkConnectivity();
 		// Optimistically set online if browser is online
