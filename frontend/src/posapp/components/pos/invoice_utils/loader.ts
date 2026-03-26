@@ -155,6 +155,11 @@ export async function fetch_customer_fs_balance(context: any) {
 		});
 
 		const fs_balance_available = (r.message['Result'] == 'OK') ? r.message['maxAmount'] : "";
+		console.log("loader.ts fs_balance_available: ", fs_balance_available);
+		console.log("loader.ts r.message['Result']: ", r.message['Result']);
+		context.fs_balance_available = fs_balance_available;
+		context.fs_balance_message = r?.message['Result'];
+
 		if (r.message['Result'] != 'OK') {
 			context.toastStore.show({
 				title: __("FS API Response"),
@@ -165,17 +170,12 @@ export async function fetch_customer_fs_balance(context: any) {
 		}
 		if (r.message['maxAmount'] < 0) {
 			context.toastStore.show({
-				title: __("Invalid FS Balance"),
-				text: __("Balance Response: {0}; Balance is less than 0", r.message['Result']),
+				title: __("Invalid FS Balance: "),
+				text: __("Balance Response: {0}, Balance is less than 0", [r.message['Result']]),
 				color: "error",
 			});
 			return;
 		}
-
-		console.log("loader.ts fs_balance_available: ", fs_balance_available);
-		console.log("loader.ts r.message['Result']: ", r.message['Result']);
-		context.fs_balance_available = fs_balance_available;
-		context.fs_balance_message = r?.message['Result'];
 
 		// Cache the balanced for offline use
 		saveCustomerFsBalance(context.customer, fs_balance_available);
