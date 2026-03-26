@@ -58,6 +58,8 @@ const statusColor = computed(() => {
 		fs_balance_available_float = parseFloat(props.fs_balance_available);
 	console.log("props.fs_balance_available: ", props.fs_balance_available);
 	console.log("fs_balance_available_float: ", fs_balance_available_float);
+	console.log("props.networkOnline: ", props.networkOnline);
+	console.log("props.fs_balance_message: ", props.fs_balance_message);
 	console.log("props.customer: ", props.customer);
 	console.log("Test Message");
 
@@ -82,7 +84,8 @@ const statusColor = computed(() => {
 	// }
 
 	if (props.customer && fs_balance_available_float >= 0) {
-		return fs_balance_available_float > 0 ? "green" : "red"; // FS Balance positive or zero
+		console.log("Inside if (props.customer && fs_balance_available_float >= 0)");
+		return fs_balance_available_float > 0 ? "green" : "orange"; // FS Balance positive or zero
 	}
 
 	// Invalid FS Balance
@@ -92,7 +95,8 @@ const statusColor = computed(() => {
 
 	// Remote FS server not reachable
 	if (props.customer && !fs_balance_available_float) {
-		return "orange";
+		console.log("Inside if (props.customer && !fs_balance_available_float)");
+		return "red";
 	}
 
 	// For IP hosts (localhost, 127.0.0.1, IP addresses), prioritize network status
@@ -140,7 +144,7 @@ const statusIcon = computed(() => {
 		return "mdi-bank-off";
 	}
 
-	// Network offline: color should be orange
+	// Network offline: color should be red
 	// Customer not selected: color should be grey
 	return "mdi-bank";
 });

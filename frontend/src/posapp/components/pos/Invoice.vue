@@ -54,6 +54,7 @@
 										:network-online="networkOnline"
 										:customer="customer"
 										:fs_balance_available="fs_balance_available"
+										:fs_balance_message="fs_balance_message"
 									/>
 								</template>
 							</InvoiceCustomerSection>
@@ -444,6 +445,7 @@ export default {
 			customer_balance_currency: undefined,
 			customer_balance_loading: false,
 			fs_balance_available: "",
+			fs_balance_message: "",
 			networkOnline: false,
 			total_tax: 0,
 			packed_dialog_items: [],
