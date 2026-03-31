@@ -200,6 +200,7 @@ export async function fetch_customer_fs_balance(context: any) {
 				text: __("Balance Response: {0}, Balance is less than 0", [r.message['Result']]),
 				color: "error",
 			});
+			context.customer = null;
 			return;
 		}
 

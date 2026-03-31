@@ -29,6 +29,8 @@ export function useItemsTableSearch() {
 		} else {
 			normalized = String(search).toLowerCase().trim();
 			terms = normalized ? normalized.split(/\s+/).filter(Boolean) : [];
+			// The expression string.split(/\s+/) is used to split a string into an array of substrings based on whitespace characters, 
+			// effectively normalizing the string by removing extra spaces. This means it will treat multiple spaces as a single delimiter when creating the array.
 
 			searchCache.value = {
 				raw: search,
@@ -79,8 +81,8 @@ export function useItemsTableSearch() {
 		};
 
 		collect(value);
-		collect(rawItem?.item_name);
 		collect(rawItem?.item_code);
+		collect(rawItem?.item_name);
 		collect(rawItem?.description);
 		collect(rawItem?.barcode);
 		collect(rawItem?.serial_no);

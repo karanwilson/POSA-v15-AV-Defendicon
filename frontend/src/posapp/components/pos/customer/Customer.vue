@@ -26,6 +26,7 @@
 				@update:modelValue="onCustomerChange"
 				@update:search="onCustomerSearch"
 				@keydown.enter="handleEnter"
+				@click:clear="handleClearCustomer"
 				:virtual-scroll="true"
 				:virtual-scroll-item-height="48"
 			>
@@ -493,6 +494,12 @@ export default {
 			searchDebounce(term, customerSearchInputRequestId);
 		};
 
+		const handleClearCustomer = (event) => {
+			tempSelectedCustomer.value = null;
+			internalCustomer.value = null;
+			customersStore.setSelectedCustomer(null);
+		}
+
 		const handleEnter = async (event) => {
 			const inputText = event.target.value || "";
 			await searchDebounce.flush();
@@ -649,6 +656,7 @@ export default {
 			onCustomerChange,
 			onCustomerSearch,
 			handleEnter,
+			handleClearCustomer,
 			new_customer,
 			edit_customer,
 			selectFirstCustomer,
