@@ -26,6 +26,7 @@
 				@update:modelValue="onCustomerChange"
 				@update:search="onCustomerSearch"
 				@keydown.enter="handleEnter"
+				@click:clear="handleClearCustomer"
 				:virtual-scroll="true"
 				:virtual-scroll-item-height="48"
 			>
@@ -437,6 +438,12 @@ export default {
 			searchDebounce(term);
 		};
 
+		const handleClearCustomer = (event) => {
+			tempSelectedCustomer.value = null;
+			internalCustomer.value = null;
+			customersStore.setSelectedCustomer(null);
+		}
+
 		const handleEnter = (event) => {
 			const inputText = event.target.value?.toLowerCase() || "";
 			const matched = customers.value.find((cust) => {
@@ -587,6 +594,7 @@ export default {
 			onCustomerChange,
 			onCustomerSearch,
 			handleEnter,
+			handleClearCustomer,
 			new_customer,
 			edit_customer,
 			selectFirstCustomer,

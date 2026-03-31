@@ -183,6 +183,8 @@ export function useItemSearch() {
 	 * @param {number} filters.limit - Max items to return
 	 * @returns {Array} - Filtered and paginated items
 	 */
+
+	// Item Filter happens here
 	const filterAndPaginate = (
 		items: SearchItem[],
 		{
@@ -193,10 +195,11 @@ export function useItemSearch() {
 			limit = 50,
 		} = {},
 	) => {
+		console.log("searchTerm: ", searchTerm);
 		if (!items || !items.length) return [];
 
 		const term = (searchTerm || "").trim().toLowerCase();
-		const needsLocalSearch = term && term.length >= 3;
+		const needsLocalSearch = term && term.length >= 2;
 
 		// PERF: If no filters needed, just slice and return
 		if (
@@ -215,6 +218,8 @@ export function useItemSearch() {
 
 		const result: SearchItem[] = [];
 		const activeTerms = searchTerms || [];
+		console.log("activeTerms: ", activeTerms);
+
 		const resolveItemRate = (item: SearchItem): number => {
 			const candidates = [
 				item.original_rate,
@@ -239,11 +244,19 @@ export function useItemSearch() {
 			// 1. Search Filter
 			if (needsLocalSearch) {
 				let matches = false;
-				if (item._search_index) {
+
+				// Adding exact match for Item Codes
+				if (item.item_code == searchTerm) {
+					// console.log("Inside if (item.item_code == searchTerm)");
+					// console.log("item.item_code: ", item.item_code);
+					matches = true;
+				}
+
+				if (!matches && item._search_index) {
 					matches = activeTerms.every((t) =>
 						item._search_index!.includes(t),
 					);
-				} else {
+				} else if (!matches) {
 					// Fallback
 					const rawIndex = (
 						(item.item_code || "") +

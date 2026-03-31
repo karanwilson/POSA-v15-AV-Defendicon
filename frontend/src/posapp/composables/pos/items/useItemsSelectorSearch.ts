@@ -187,6 +187,7 @@ export const useItemsSelectorSearch = ({
 		return scal_qty;
 	};
 
+	// Item load happens here
 	const enter_event = async (scannedCode?: string) => {
 		const vm = getVm();
 		if (!vm) return;
@@ -301,7 +302,8 @@ export const useItemsSelectorSearch = ({
 		}
 
 		// Require a minimum of three characters before running a search
-		if (!trimmedQuery || trimmedQuery.length < 3) {
+		//if (!trimmedQuery || trimmedQuery.length < 3) {
+		if (!trimmedQuery || trimmedQuery.length < 2) { // Require a minimum of two characters before running a search
 			vm.search_from_scanner = false;
 			return;
 		}
