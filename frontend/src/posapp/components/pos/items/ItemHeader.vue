@@ -36,7 +36,9 @@
 								$emit('search-input', val);
 							}
 						"
-						@keydown="handleSearchKeydown"
+						@keydown.esc="$emit('esc')"
+						@keydown.enter="$refs.input_qty.focus()"
+						@keydown="$emit('search-keydown', $event)"
 						@click:clear="$emit('clear-search')"
 						@click:prepend-inner="$emit('focus')"
 						@paste="$emit('search-paste', $event)"
@@ -123,6 +125,7 @@
 					@focus="$emit('clear-qty')"
 					@click="$emit('clear-qty')"
 					@blur="$emit('blur-qty')"
+					ref="input_qty"
 				></v-text-field>
 			</v-col>
 		</v-row>

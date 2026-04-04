@@ -1799,7 +1799,9 @@ const onEnter = (e) => {
 		void handleCounterResultEnter(e);
 		return;
 	}
-	itemsSelectorSearch.onEnter(e);
+	// itemsSelectorSearch.onEnter(e);
+	if (e) itemsSelectorSearch.onEnter(e);
+	else itemSelection.selectTopItem();
 };
 const handleSearchKeydown = (e) => itemsSelectorFocus.handleSearchKeydown(e);
 const handleSearchPaste = (e) => itemsSelectorFocus.handleSearchPaste(e);

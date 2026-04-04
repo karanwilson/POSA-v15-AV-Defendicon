@@ -199,9 +199,10 @@ export const useItemsSelectorSearch = ({
 		return scal_qty;
 	};
 
-	// Item load happens here
+	// Item load happens here, but only from a barcode scan
 	const enter_event = async (scannedCode?: string) => {
 		const vm = getVm();
+		console.log("vm: ", vm);
 		if (!vm) return;
 
 		const searchTerm = scannedCode || vm.first_search;
@@ -410,6 +411,9 @@ export const useItemsSelectorSearch = ({
 
 	const onEnter = (event?: KeyboardEvent) => {
 		const vm = getVm();
+		// console.log("vm in onEnter: ", vm);
+		// console.log("event in onEnter: ", event);
+
 		if (!vm) return;
 
 		if (getHighlightedIndex(itemSelection || vm.itemSelection) >= 0) {
