@@ -249,14 +249,15 @@ export function useItemSearch() {
 				if (item.item_code == searchTerm) {
 					// console.log("Inside if (item.item_code == searchTerm)");
 					// console.log("item.item_code: ", item.item_code);
-					matches = true;
+					result.push(item);
+					break;
 				}
 
-				if (!matches && item._search_index) {
+				if (item._search_index) {
 					matches = activeTerms.every((t) =>
 						item._search_index!.includes(t),
 					);
-				} else if (!matches) {
+				} else {
 					// Fallback
 					const rawIndex = (
 						(item.item_code || "") +
@@ -299,6 +300,7 @@ export function useItemSearch() {
 			}
 		}
 
+		console.log("filterAndPaginate result: ", result);
 		return result;
 	};
 

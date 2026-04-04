@@ -274,6 +274,8 @@ export function useItemSelection() {
 		event: MouseEvent,
 		{ item }: { item: SelectableItem },
 	) {
+		// console.log("handleRowClick event: ", event);
+		// console.log("handleRowClick item: ", item);
 		triggerFlyAnimation(event, true);
 		if (ctx.addItem) await ctx.addItem(item);
 	}

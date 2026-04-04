@@ -24,7 +24,7 @@
 							}
 						"
 						@keydown.esc="$emit('esc')"
-						@keydown.enter="$emit('enter')"
+						@keydown.enter="$refs.input_qty.focus()"
 						@keydown="$emit('search-keydown', $event)"
 						@click:clear="$emit('clear-search')"
 						@click:prepend-inner="$emit('focus')"
@@ -110,6 +110,7 @@
 					@focus="$emit('clear-qty')"
 					@click="$emit('clear-qty')"
 					@blur="$emit('blur-qty')"
+					ref="input_qty"
 				></v-text-field>
 			</v-col>
 		</v-row>

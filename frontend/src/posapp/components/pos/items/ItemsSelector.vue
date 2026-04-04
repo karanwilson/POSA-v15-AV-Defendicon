@@ -1073,7 +1073,22 @@ const {
 
 // Proxy functions for template
 const esc_event = () => clearSearch();
-const onEnter = (e) => itemsSelectorSearch.onEnter(e);
+const onEnter = (e) => {
+	// console.log("typeof e: ", typeof e);
+	// console.log("typeof e == undefined ", typeof e == undefined);
+	// console.log("typeof e === undefined ", typeof e === undefined);
+	// console.log("(e === underfined): ", e === undefined);
+	// console.log("(e == underfined): ", e == undefined);
+	// console.log("onEnter: ", onEnter);
+	//console.log("e: ", e);
+	// console.log("displayedItems: ", displayedItems);
+	// console.log("displayedItems.value: ", displayedItems.value);
+	// console.log("displayedItems.value.length: ", displayedItems.value.length);
+	//if (displayedItems.value.length == 1) itemSelection.selectTopItem();
+	if (e) itemsSelectorSearch.onEnter(e);
+	else itemSelection.selectTopItem();
+}
+//const onEnter = (e) => itemsSelectorSearch.onEnter(e);
 const handleSearchKeydown = (e) => itemsSelectorFocus.handleSearchKeydown(e);
 const handleSearchPaste = (e) => itemsSelectorFocus.handleSearchPaste(e);
 const searchItems = (term) => itemsIntegration.searchItems(term);
