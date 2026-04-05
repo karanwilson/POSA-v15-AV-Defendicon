@@ -980,19 +980,19 @@ const setupEventListeners = () => {
 				if (newProfile.posa_enable_fs_payments) {
 					//this.fapi_login();
 					fapiLogin();
-					if (newProfile.posa_enable_icici_pos_payments) {
-						//this.icici_pos_checkStatus();
-						iciciPosCheckStatus();
-					}
+				}
+				if (newProfile.posa_enable_icici_pos_payments) {
+					//this.icici_pos_checkStatus();
+					iciciPosCheckStatus();
 				}
 				if (newProfile.posa_input_qty && newProfile.posa_input_weighing_scale) {
-					$refs.allow_scale_button.$el.focus(); // request permission for accessing the scale port
+					//$refs.allow_scale_button.$el.focus(); // request permission for accessing the scale port
 					console.info('request_scale_port');
 				}
-				}
-			},
-			{ deep: true, immediate: true },
-		);
+			}
+		},
+		{ deep: true, immediate: true },
+	);
 
 	if (eventBus) {
 		// Track last submitted invoice id
