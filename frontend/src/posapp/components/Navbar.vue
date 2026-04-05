@@ -21,6 +21,7 @@
 			<!-- Slot for FS indicator -->
 			<template #fs-indicator>
 				<FsIndicator
+					:enable-fs-payments="enableFsPayments"
 					:network-online="networkOnline"
 					:fs-online="fsOnline"
 					:server-connecting="serverConnecting"
@@ -31,6 +32,7 @@
 			<!-- Slot for ICICI indicator -->
 			<template #icici-indicator>
 				<IciciIndicator
+					:enable-icici-payments="enableIciciPayments"
 					:network-online="networkOnline"
 					:icici-online="iciciOnline"
 					:server-connecting="serverConnecting"
@@ -356,6 +358,8 @@ export default {
 			terminalLockRetryAttempt: 0,
 			terminalLockRequestInFlight: null,
 			terminalEmployeesRequestId: 0,
+			enableFsPayments: false,
+			enableIciciPayments: false
 		};
 	},
 	watch: {
@@ -617,6 +621,33 @@ export default {
 				});
 			}
 			this.items = items;
+			if (this.posProfile?.posa_enable_fs_payments) this.enableFsPayments = true;
+			if (this.posProfile?.posa_enable_icici_pos_payments) this.enableIciciPayments = true;
+		},
+		async fetchTerminalEmployees() {
+			if (!this.posProfile?.name) {
+				this.employeeStore.setTerminalEmployees([]);
+				return;
+			}
+
+			try {
+				const response = await frappe.call({
+					method: "posawesome.posawesome.api.employees.get_terminal_employees",
+					args: {
+						pos_profile: this.posProfile.name,
+					},
+				});
+				this.employeeStore.setTerminalEmployees(response?.message || []);
+			} catch (error) {
+				console.error("Failed to load terminal employees", error);
+				this.employeeStore.setTerminalEmployees([]);
+			}
+		},
+		openEmployeeSwitch() {
+			this.employeeStore.openEmployeeSwitch();
+		},
+		lockPosScreen() {
+			this.employeeStore.lockTerminal();
 		},
 		async fetchTerminalEmployees() {
 			const profileName = this.posProfileName;

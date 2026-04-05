@@ -25,6 +25,7 @@ defineOptions({
 });
 
 interface Props {
+	enableFsPayments?: boolean;
 	networkOnline?: boolean;
 	fsOnline?: boolean;
 	serverConnecting?: boolean;
@@ -32,6 +33,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+	enableFsPayments: false,
 	networkOnline: false,
 	fsOnline: false,
 	serverConnecting: false,
@@ -61,6 +63,8 @@ const statusColor = computed(() => {
 			window.location.hostname,
 		);
 	}
+
+	if (!props.enableFsPayments) return "grey";
 
 	// Show yellow/orange when connecting
 	if (props.serverConnecting) {
@@ -102,6 +106,8 @@ const statusIcon = computed(() => {
 		);
 	}
 
+	if (!props.enableFsPayments) return "mdi-server-off";
+
 	// Show loading icon when connecting
 	if (props.serverConnecting) {
 		return "mdi-wifi-sync";
@@ -123,7 +129,7 @@ const statusIcon = computed(() => {
 	}
 
 	// Network offline
-	return "mdi-wifi-off";
+	return "mdi-network-off";
 });
 
 const statusText = computed(() => {
@@ -134,6 +140,8 @@ const statusText = computed(() => {
 	 */
 	const hostname = window.location.hostname;
 	const hostType = props.isIpHost ? "Local/IP Host" : "Domain Host";
+
+	if (!props.enableFsPayments) return __(`FS Payments not enabled`);
 
 	if (props.serverConnecting) {
 		return __(`Connecting to FS server... (${hostType}: ${hostname})`);
@@ -159,6 +167,9 @@ const connectivityLabel = computed(() => {
 	 * Short, user-friendly connectivity label for the navbar.
 	 * @returns {string}
 	 */
+
+	if (!props.enableFsPayments) return __(`FS not enabled`);
+
 	if (props.serverConnecting) {
 		return __("FS Connecting");
 	}

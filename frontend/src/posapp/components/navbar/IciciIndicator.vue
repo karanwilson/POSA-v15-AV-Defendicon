@@ -1,6 +1,6 @@
 <template>
 	<div class="status-section-enhanced mx-1">
-		<v-btn icon :title="statusText" class="status-btn-enhanced" :color="statusColor">
+		<v-btn icon :title="statusText" :aria-label="statusText" class="status-btn-enhanced" :color="statusColor">
 			<v-icon :color="statusColor">{{ statusIcon }}</v-icon>
 		</v-btn>
 		<div class="status-info-always-visible">
@@ -17,150 +17,174 @@
 	</div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed } from "vue";
+
+defineOptions({
+	name: "FsIndicator",
+});
+
+interface Props {
+	enableIciciPayments?: boolean;
+	networkOnline?: boolean;
+	iciciOnline?: boolean;
+	serverConnecting?: boolean;
+	isIpHost?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+	enableIciciPayments: false,
+	networkOnline: false,
+	iciciOnline: false,
+	serverConnecting: false,
+	isIpHost: false,
+});
+
+// @ts-ignore
+const __ = (window as any).__ || ((text: string) => text);
 const DEBUG = false;
 
-export default {
-	name: "IciciIndicator",
-	props: {
-		iciciOnline: Boolean,
-		networkOnline: Boolean,
-		serverConnecting: Boolean,
-		isIpHost: Boolean,
-	},
-	computed: {
-		/**
-		 * Determines the color of the status icon based on current network and server connectivity.
-		 * @returns {string} A Vuetify color string ('green', 'red').
-		 */
-		statusColor() {
-			// Enhanced debugging with more context
-			if (DEBUG) {
-				console.log(
-					"Icici StatusIndicator - Network:",
-					this.networkOnline,
-					"ICICI Server:",
-					this.iciciOnline,
-					"Connecting:",
-					this.serverConnecting,
-					"IP Host:",
-					this.isIpHost,
-					"Host:",
-					window.location.hostname,
-				);
-			}
+const statusColor = computed(() => {
+	/**
+	 * Determines the color of the status icon based on current network and server connectivity.
+	 * @returns {string} A Vuetify color string ('green', 'red').
+	 */
+	if (DEBUG) {
+		console.log(
+			"ICICI StatusIndicator - Network:",
+			props.networkOnline,
+			"Remote ICICI Server:",
+			props.iciciOnline,
+			"Connecting:",
+			props.serverConnecting,
+			"Local IP Host:",
+			props.isIpHost,
+			"Host:",
+			window.location.hostname,
+		);
+	}
 
-			// Show yellow/orange when connecting
-			if (this.serverConnecting) {
-				return "orange";
-			}
+	if (!props.enableIciciPayments) return "grey";
 
-			// For IP hosts (localhost, 127.0.0.1, IP addresses), prioritize network status
-			if (this.isIpHost) {
-				return this.networkOnline ? "green" : "red";
-			}
+	// Show yellow/orange when connecting
+	if (props.serverConnecting) {
+		return "orange";
+	}
 
-			// For domain hosts, require both network and server connectivity
-			if (this.networkOnline && this.iciciOnline) {
-				return "green";
-			}
+	// For IP hosts (localhost, 127.0.0.1, IP addresses), prioritize network status
+	if (props.isIpHost) {
+		return props.networkOnline ? "green" : "red";
+	}
 
-			// Network online but server offline
-			if (this.networkOnline && !this.iciciOnline) {
-				return "orange";
-			}
+	// For domain hosts, require both network and server connectivity
+	if (props.networkOnline && props.iciciOnline) {
+		return "green";
+	}
 
-			// Network offline
-			return "red";
-		},
-		/**
-		 * Determines the Material Design Icon to display based on network and server status.
-		 * @returns {string} A Material Design Icon class string.
-		 */
-		statusIcon() {
-			if (DEBUG) {
-				console.log(
-					"IciciIndicator - Determining icon for network:",
-					this.networkOnline,
-					"server:",
-					this.iciciOnline,
-					"connecting:",
-					this.serverConnecting,
-				);
-			}
+	// Network online but server offline
+	if (props.networkOnline && !props.iciciOnline) {
+		return "orange";
+	}
 
-			// Show loading icon when connecting
-			if (this.serverConnecting) {
-				return "mdi-sync";
-			}
+	// Network offline
+	return "red";
+});
 
-			// For IP hosts, show based on network status
-			if (this.isIpHost) {
-				return this.networkOnline ? "mdi-bank" : "mdi-bank-off";
-			}
+const statusIcon = computed(() => {
+	/**
+	 * Determines the Material Design Icon to display based on network and server status.
+	 * @returns {string} A Material Design Icon class string.
+	 */
+	if (DEBUG) {
+		console.log(
+			"ICICI StatusIndicator - Determining icon for network:",
+			props.networkOnline,
+			"Remote ICICI server:",
+			props.iciciOnline,
+			"connecting:",
+			props.serverConnecting,
+		);
+	}
 
-			// Full connectivity
-			if (this.networkOnline && this.iciciOnline) {
-				return "mdi-bank";
-			}
+	if (!props.enableIciciPayments) return "mdi-bank-off";
 
-			// Network online but server issues
-			if (this.networkOnline && !this.iciciOnline) {
-				return "mdi-bank-outline";
-			}
+	// Show loading icon when connecting
+	if (props.serverConnecting) {
+		return "mdi-sync";
+	}
 
-			// Network offline
-			return "mdi-bank-off";
-		},
-		/**
-		 * Provides a descriptive text for the tooltip that appears when hovering over the status icon.
-		 * This text is also used for the `title` attribute of the button.
-		 * @returns {string} A localized status message.
-		 */
-		statusText() {
-			const hostname = window.location.hostname;
-			const hostType = this.isIpHost ? "Local/IP Host" : "Domain Host";
+	// For IP hosts, show based on network status
+	if (props.isIpHost) {
+		return props.networkOnline ? "mdi-bank" : "mdi-network-off";
+	}
 
-			if (this.serverConnecting) {
-				return this.__(`Connecting to ICICI server...`);
-			}
+	// Full connectivity
+	if (props.networkOnline && props.iciciOnline) {
+		return "mdi-bank-check";
+	}
 
-			if (!this.networkOnline) {
-				return this.__(`No Internet Connection (${hostType}: ${hostname})`);
-			}
+	// Network online but server issues
+	if (props.networkOnline && !props.iciciOnline) {
+		return "mdi-bank-off-outline";
+	}
 
-			if (this.isIpHost) {
-				return this.__(`Connected to ${hostname}`);
-			}
+	// Network offline
+	return "mdi-network-off";
+});
 
-			if (this.iciciOnline) {
-				return this.__(`Connected to ICICI Server`);
-			}
+const statusText = computed(() => {
+	/**
+	 * Provides a descriptive text for the tooltip that appears when hovering over the status icon.
+	 * This text is also used for the `title` attribute of the button.
+	 * @returns {string} A localized status message.
+	 */
+	const hostname = window.location.hostname;
+	const hostType = props.isIpHost ? "Local/IP Host" : "Domain Host";
 
-			return this.__(`ICICI Server Offline`);
-		},
-		/**
-		 * Short, user-friendly connectivity label for the navbar.
-		 * @returns {string}
-		 */
-		connectivityLabel() {
-			if (this.serverConnecting) {
-				return this.__("ICICI Connecting");
-			}
+	if (!props.enableIciciPayments) return __(`ICICI Payments not enabled`);
 
-			if (!this.networkOnline) {
-				return this.__("ICICI Offline");
-			}
+	if (props.serverConnecting) {
+		return __(`Connecting to ICICI server... (${hostType}: ${hostname})`);
+	}
 
-			if (this.networkOnline && this.iciciOnline) {
-				return this.__("ICICI Online");
-			}
+	if (!props.networkOnline) {
+		return __(`No Internet Connection (${hostType}: ${hostname})`);
+	}
 
-			// Network is available but server is not responding
-			return this.__("ICICI Limited");
-		},
-	},
-};
+	if (props.isIpHost) {
+		return __(`Connected to ${hostname}`);
+	}
+
+	if (props.iciciOnline) {
+		return __(`Connected to Remote ICICI Server`);
+	}
+
+	return __(`Remote ICICI Server Offline; local server: (${hostname})`);
+});
+
+const connectivityLabel = computed(() => {
+	/**
+	 * Short, user-friendly connectivity label for the navbar.
+	 * @returns {string}
+	 */
+
+	 if (!props.enableIciciPayments) return __(`ICICI not enabled`);
+
+	 if (props.serverConnecting) {
+		return __("ICICI Connecting");
+	}
+
+	if (!props.networkOnline) {
+		return __("ICICI Offline");
+	}
+
+	if (props.networkOnline && props.iciciOnline) {
+		return __("ICICI Online");
+	}
+
+	// Network is available but server is not responding
+	return __("ICICI Limited");
+});
 </script>
 
 <style scoped>
@@ -175,15 +199,15 @@ export default {
 }
 
 .status-btn-enhanced {
-	background: rgba(25, 118, 210, 0.1) !important;
-	border: 1px solid rgba(25, 118, 210, 0.3);
+	background: var(--pos-hover-bg) !important;
+	border: 1px solid var(--pos-border);
 	transition: all 0.3s ease;
 	padding: 4px;
 	/* Reduced padding */
 }
 
 .status-btn-enhanced:hover {
-	background: rgba(25, 118, 210, 0.2) !important;
+	background: var(--pos-focus-bg) !important;
 	transform: scale(1.05);
 }
 
