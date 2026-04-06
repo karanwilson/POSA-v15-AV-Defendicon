@@ -26,6 +26,7 @@ defineOptions({
 });
 
 interface Props {
+	enableFsPayments?: boolean;
 	networkOnline?: boolean;
 	fs_balance_available?: string;
 	fs_balance_message?: string;
@@ -35,6 +36,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+	enableFsPayments: false,
 	networkOnline: false,
 	fs_balance_available: "",
 	fs_balance_message: "",
@@ -53,15 +55,16 @@ const statusColor = computed(() => {
 	 * @returns {string} A Vuetify color string ('green', 'red').
 	 */
 
+	if (!props.enableFsPayments) return "grey";
+
 	let fs_balance_available_float: any;
 	if (props.fs_balance_available)
 		fs_balance_available_float = parseFloat(props.fs_balance_available);
-	console.log("props.fs_balance_available: ", props.fs_balance_available);
-	console.log("fs_balance_available_float: ", fs_balance_available_float);
-	console.log("props.networkOnline: ", props.networkOnline);
-	console.log("props.fs_balance_message: ", props.fs_balance_message);
-	console.log("props.customer: ", props.customer);
-	console.log("Test Message");
+	// console.log("props.fs_balance_available: ", props.fs_balance_available);
+	// console.log("fs_balance_available_float: ", fs_balance_available_float);
+	// console.log("props.networkOnline: ", props.networkOnline);
+	// console.log("props.fs_balance_message: ", props.fs_balance_message);
+	// console.log("props.customer: ", props.customer);
 
 	if (DEBUG) {
 		console.log(
@@ -124,6 +127,8 @@ const statusIcon = computed(() => {
 		);
 	}
 
+	if (!props.enableFsPayments) return "mdi-server-off";
+
 	// Show loading icon when connecting
 	// if (props.serverConnecting) {
 	// 	return "mdi-wifi-sync";
@@ -158,6 +163,8 @@ const statusText = computed(() => {
 	const hostname = window.location.hostname;
 	const hostType = props.isIpHost ? "Local/IP Host" : "Domain Host";
 
+	if (!props.enableFsPayments) return __(`FS Payments not enabled`);
+
 	// if (props.serverConnecting) {
 	// 	return __(`Connecting to FS server... (${hostType}: ${hostname})`);
 	// }
@@ -183,7 +190,7 @@ const statusText = computed(() => {
 	else return __(`Remote FS Server Offline; local server: (${hostname})`);
 });
 
-const connectivityLabel = computed(() => {
+//const connectivityLabel = computed(() => {
 // 	/**
 // 	 * Short, user-friendly connectivity label for the navbar.
 // 	 * @returns {string}
@@ -192,17 +199,19 @@ const connectivityLabel = computed(() => {
 	// 	return __("FS Connecting");
 	// }
 
-	if (!props.networkOnline) {
-		return __("FS Offline");
-	}
+// 	if (!props.enableFsPayments) return __(`FS not enabled`);
 
-	if (props.networkOnline && props.fs_balance_available) {
-		return __("FS Online");
-	}
+// 	if (!props.networkOnline) {
+// 		return __("FS Offline");
+// 	}
 
-	// Network is available but server is not responding
-	return __("FS Limited");
-	});
+// 	if (props.networkOnline && props.fs_balance_available) {
+// 		return __("FS Online");
+// 	}
+
+// 	// Network is available but server is not responding
+// 	return __("FS Limited");
+// 	});
 </script>
 
 <style scoped>
