@@ -51,6 +51,7 @@
 								<!-- Slot for FS Balance indicator -->
 								<template #fs-balance-indicator>
 									<FsBalanceIndicator
+										:enable-fs-payments="enableFsPayments"
 										:network-online="networkOnline"
 										:customer="customer"
 										:fs_balance_available="fs_balance_available"
@@ -479,6 +480,7 @@ export default {
 			price_list_rate_dialog_resolver: null,
 			item_quick_edit_open: false,
 			item_quick_edit_item_code: "",
+			enableFsPayments: false,
 		};
 	},
 
@@ -1051,6 +1053,8 @@ export default {
 			this.fetch_price_lists();
 			this.update_price_list();
 			this.fetch_available_currencies();
+
+			if (this.pos_profile?.posa_enable_fs_payments) this.enableFsPayments = true;
 			this.refresh_parked_orders();
 		},
 		async refresh_parked_orders() {
