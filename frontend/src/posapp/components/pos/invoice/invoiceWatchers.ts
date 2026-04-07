@@ -25,6 +25,7 @@ interface InvoiceWatchersVm {
 		selling_price_list?: string;
 		posa_allow_multi_currency?: boolean;
 		currency?: string;
+		posa_enable_fs_payments?: boolean;
 	};
 	Total?: number;
 	isReturnInvoice?: boolean;
@@ -114,7 +115,7 @@ const invoiceWatchers: Record<string, unknown> & ThisType<InvoiceWatchersVm> = {
 		if (hasCustomer) {
 			this.fetch_customer_details();
 			this.fetch_customer_balance();
-			this.fetch_customer_fs_balance();
+			if (this.pos_profile?.posa_enable_fs_payments) this.fetch_customer_fs_balance();
 		}
 		this.set_delivery_charges();
 		this.sync_invoice_customer_details();

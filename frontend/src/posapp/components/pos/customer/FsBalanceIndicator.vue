@@ -163,11 +163,15 @@ const statusText = computed(() => {
 	const hostname = window.location.hostname;
 	const hostType = props.isIpHost ? "Local/IP Host" : "Domain Host";
 
-	if (!props.enableFsPayments) return __(`FS Payments not enabled`);
-
 	// if (props.serverConnecting) {
 	// 	return __(`Connecting to FS server... (${hostType}: ${hostname})`);
 	// }
+
+	if (!props.enableFsPayments) return __(`FS Payments not enabled`);
+
+	else if (props.fs_balance_available) return __(`Connected to Remote FS Server`);
+
+	else if (!props.fs_balance_available) return __(props.fs_balance_message);
 
 	if (!props.networkOnline) {
 		return __(`No Internet Connection (${hostType}: ${hostname})`);
@@ -181,13 +185,7 @@ const statusText = computed(() => {
 		return __(`Connected to ${hostname}`);
 	}
 
-	if (!props.fs_balance_available) return __(props.fs_balance_message);
-
-	else if (props.fs_balance_available) {
-		return __(`Connected to Remote FS Server`);
-	}
-
-	else return __(`Remote FS Server Offline; local server: (${hostname})`);
+	return __(`Remote FS Server Offline; local server: (${hostname})`);
 });
 
 //const connectivityLabel = computed(() => {

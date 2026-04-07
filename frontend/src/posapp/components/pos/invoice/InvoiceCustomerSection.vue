@@ -22,7 +22,7 @@
 		</v-col>
 
 		<!-- FS Balance Component comes here -->
-		<v-col v-if="pos_profile.posa_enable_fs_payments" cols="1" class="pb-4">
+		<v-col cols="1" class="pb-4">
 			<div class="gadget-wrapper status-gadget">
 				<slot name="fs-balance-indicator"></slot>
 			</div>
