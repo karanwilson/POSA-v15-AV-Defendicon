@@ -175,6 +175,7 @@ export async function cancel_invoice(context: any) {
 }
 
 export async function save_and_clear_invoice(context: any) {
+	//console.log("action.ts Context: ", context); // Karan
 	const { clearInvoice } = getItemAdditionApi();
 	let old_invoice = null;
 	const doc = get_invoice_doc(context);

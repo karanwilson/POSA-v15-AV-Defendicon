@@ -397,6 +397,7 @@ export default {
 		customer_name: "",
 		customer_id: "",
 		custom_fs_account_number: "",
+		customer_group: "", // Karan
 		mobile_no: "",
 		tax_id: "",
 		from_date: null,
@@ -570,6 +571,7 @@ export default {
 			this.customer_name = "";
 			this.customer_id = "";
 			this.custom_fs_account_number = "";
+			this.customer_group = ""; // Karan
 			this.mobile_no = "";
 			this.tax_id = "";
 			this.from_date = null;
@@ -675,6 +677,7 @@ export default {
 				customer_name: vm.customer_name,
 				customer_id: vm.customer_id,
 				custom_fs_account_number: vm.custom_fs_account_number,
+				customer_group: vm.customer_group, // Karan
 				mobile_no: vm.mobile_no,
 				tax_id: vm.tax_id,
 				from_date: formattedFromDate,
@@ -857,6 +860,7 @@ export default {
 			this.customer_name = "";
 			this.customer_id = "";
 			this.custom_fs_account_number = "",
+			this.customer_group = "", // Karan
 			this.mobile_no = "";
 			this.tax_id = "";
 			this.from_date = null;

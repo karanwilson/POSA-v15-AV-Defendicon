@@ -58,10 +58,11 @@ const statusColor = computed(() => {
 	if (!props.enableFsPayments) return "grey";
 
 	let fs_balance_available_float: any;
-	if (props.fs_balance_available)
+	if (props.customer && props.fs_balance_available != null)
 		fs_balance_available_float = parseFloat(props.fs_balance_available);
-	// console.log("props.fs_balance_available: ", props.fs_balance_available);
-	// console.log("fs_balance_available_float: ", fs_balance_available_float);
+	else fs_balance_available_float = null;
+	console.log("props.fs_balance_available: ", props.fs_balance_available);
+	console.log("fs_balance_available_float: ", fs_balance_available_float);
 	// console.log("props.networkOnline: ", props.networkOnline);
 	// console.log("props.fs_balance_message: ", props.fs_balance_message);
 	// console.log("props.customer: ", props.customer);
@@ -85,6 +86,9 @@ const statusColor = computed(() => {
 	// if (props.serverConnecting) {
 	// 	return "orange";
 	// }
+
+	if (props.fs_balance_available == null)
+		return "grey";
 
 	if (props.customer && fs_balance_available_float >= 0) {
 		console.log("Inside if (props.customer && fs_balance_available_float >= 0)");

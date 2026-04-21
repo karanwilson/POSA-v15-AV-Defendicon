@@ -52,7 +52,7 @@ const BASE_SCHEMA = {
 	cache: "&key",
 	items: "&item_code,item_name,item_group,*barcodes,*name_keywords,*serials,*batches",
 	item_prices: "&[price_list+item_code],price_list,item_code",
-	customers: "&name,customer_name,custom_fs_account_number,mobile_no,email_id,tax_id",
+	customers: "&name,customer_name,customer_group,custom_fs_account_number,mobile_no,email_id,tax_id", // Karan: addeed customer_group for mode_of_payment matching
 	pos_profiles: "&name",
 	opening_shifts: "&name,user,pos_profile",
 	local_stock: "&key",
