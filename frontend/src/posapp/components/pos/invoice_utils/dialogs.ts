@@ -14,6 +14,7 @@ const showCompactPanel = (context: any, panel: "selector" | "invoice") => {
 };
 
 export async function show_payment(context: any) {
+	//console.log("Dialogs.ts (show_payment) context: ", context); // Karan
 	if (context._suppressClosePaymentsTimer) {
 		clearTimeout(context._suppressClosePaymentsTimer);
 		context._suppressClosePaymentsTimer = null;
@@ -70,7 +71,8 @@ export async function show_payment(context: any) {
 		} else {
 			invoice_doc = await context.process_invoice();
 		}
-
+		// console.log("Dialogs.ts (show_payment) invoice_doc: ", invoice_doc); // Karan
+		// console.log("Dialogs.ts (show_payment) invoice_doc.customer_group: ", invoice_doc.customer_group); // Karan
 		if (!invoice_doc) {
 			return;
 		}

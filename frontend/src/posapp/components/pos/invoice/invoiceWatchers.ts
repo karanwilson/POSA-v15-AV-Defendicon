@@ -41,6 +41,7 @@ interface InvoiceWatchersVm {
 	fetch_customer_details: () => void;
 	fetch_customer_balance: () => void;
 	fetch_customer_fs_balance: () => void;
+	reset_customer_fs_balance: () => void; // Karan
 	set_delivery_charges: () => void;
 	sync_invoice_customer_details: (_details?: Record<string, unknown>) => void;
 	update_item_detail: (_item: WatcherItem) => void;
@@ -102,7 +103,7 @@ const applyReturnDiscountProration = (context: InvoiceWatchersVm) => {
 
 const invoiceWatchers: Record<string, unknown> & ThisType<InvoiceWatchersVm> = {
 	// Watch for customer change and update related data
-	customer(newValue: unknown, oldValue: unknown) {
+	async customer(newValue: unknown, oldValue: unknown) {
 		if (newValue === oldValue) {
 			return;
 		}
@@ -113,9 +114,15 @@ const invoiceWatchers: Record<string, unknown> & ThisType<InvoiceWatchersVm> = {
 			typeof this.customer === "string" &&
 			this.customer.trim().length > 0;
 		if (hasCustomer) {
-			this.fetch_customer_details();
+			await this.fetch_customer_details(); // Karan: adding async await here to wait for the custom_fs_account_number to get set before use in the statement below
 			this.fetch_customer_balance();
-			if (this.pos_profile?.posa_enable_fs_payments) this.fetch_customer_fs_balance();
+			// Karan:
+			console.log("invoiceWatchers.ts customersStore.customerInfo.custom_fs_account_number: ", customersStore.customerInfo.custom_fs_account_number);
+			//console.log("custom_fs_account_number: ", custom_fs_account_number);
+			if (this.pos_profile?.posa_enable_fs_payments)
+				if (customersStore.customerInfo.custom_fs_account_number) 
+					this.fetch_customer_fs_balance();
+				else this.reset_customer_fs_balance();
 		}
 		this.set_delivery_charges();
 		this.sync_invoice_customer_details();

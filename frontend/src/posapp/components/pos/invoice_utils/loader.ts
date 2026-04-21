@@ -173,8 +173,8 @@ export async function fetch_customer_fs_balance(context: any) {
 		}
 
 		// Online mode: fetch from server and cache the result
-		console.log("context: ", context);
-		console.log("context.customer: ", context.customer);
+		// console.log("loader.ts context.customer: ", context.customer); // Karan
+		// console.log("loader.ts context.customerInfo: ", context.customerInfo); // Karan
 		const r = await frappe.call({
 			method: "payments.payment_gateways.doctype.fs_settings.fs_settings.get_account_max_amount",
 			args: { fs_acc_customer: context.customer },
@@ -204,7 +204,7 @@ export async function fetch_customer_fs_balance(context: any) {
 			return;
 		}
 
-		// Cache the balanced for offline use
+		// Cache the balance for offline use
 		saveCustomerFsBalance(context.customer, fs_balance_available);
 	} catch (error) {
 		console.error("Error fetching FS balance:", error);
@@ -226,6 +226,12 @@ export async function fetch_customer_fs_balance(context: any) {
 			context.fs_balance_available = 0;
 		}
 	}
+}
+
+// Karan
+export async function reset_customer_fs_balance(context: any) {
+	context.fs_balance_available = null;
+	context.fs_balance_message = null;
 }
 
 export async function load_invoice(

@@ -95,7 +95,9 @@ export async function fetch_customer_details(context: any) {
 				if (context.update_items_details)
 					await context.update_items_details(context.items);
 			}
+			//console.log("customer.ts context.customer_info.custom_fs_account_number: ", context.customer_info.custom_fs_account_number); // Karan
 		}
+		//if (context.customer_info.custom_fs_account_number) return context.customer_info.custom_fs_account_number; // Karan
 	} catch (error) {
 		console.error("Error fetching customer details:", error);
 	}

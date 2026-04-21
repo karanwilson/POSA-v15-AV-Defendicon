@@ -424,6 +424,7 @@ export default {
 			if (
 				this.customer_name ||
 				this.custom_fs_account_number ||
+				this.customer_group || // Karan
 				this.tax_id ||
 				this.mobile_no ||
 				this.address_line1 ||
@@ -673,6 +674,7 @@ export default {
 					name: args.name,
 					customer_name: args.customer_name,
 					custom_fs_account_number: args.custom_fs_account_number,
+					customer_group: args.customer_group, // Karan: adding customer group for checking default payment
 					mobile_no: args.mobile_no,
 					email_id: args.email_id,
 					tax_id: args.tax_id,
@@ -701,6 +703,7 @@ export default {
 							name: args.name,
 							customer_name: args.customer_name,
 							custom_fs_account_number: args.custom_fs_account_number,
+							customer_group: args.customer_group, // Karan
 							mobile_no: args.mobile_no,
 							email_id: args.email_id,
 							tax_id: args.tax_id,
