@@ -228,6 +228,7 @@ export const useInvoiceStore = defineStore("invoice", () => {
 		doc: PartialInvoiceDoc | string | null | undefined,
 	) => {
 		invoiceDoc.value = normalizeDoc(doc);
+		//console.log("invoiceStore.ts (setInvoiceDoc) invoiceDoc.value: ", invoiceDoc.value); // Karan
 		touch();
 	};
 

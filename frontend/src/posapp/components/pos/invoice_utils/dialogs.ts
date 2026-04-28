@@ -14,7 +14,7 @@ const showCompactPanel = (context: any, panel: "selector" | "invoice") => {
 };
 
 export async function show_payment(context: any) {
-	//console.log("Dialogs.ts (show_payment) context: ", context); // Karan
+	// console.log("Dialogs.ts (show_payment) context: ", context); // Karan
 	if (context._suppressClosePaymentsTimer) {
 		clearTimeout(context._suppressClosePaymentsTimer);
 		context._suppressClosePaymentsTimer = null;
@@ -71,8 +71,6 @@ export async function show_payment(context: any) {
 		} else {
 			invoice_doc = await context.process_invoice();
 		}
-		// console.log("Dialogs.ts (show_payment) invoice_doc: ", invoice_doc); // Karan
-		// console.log("Dialogs.ts (show_payment) invoice_doc.customer_group: ", invoice_doc.customer_group); // Karan
 		if (!invoice_doc) {
 			return;
 		}
@@ -158,6 +156,7 @@ export async function show_payment(context: any) {
 			invoice_doc.posa_refundable_amount = carriedRefundableAmount;
 		}
 
+		// console.log("Dialogs.ts (show_payment) invoice_doc: ", invoice_doc); // Karan
 		context.eventBus.emit("show_payment", "true");
 		context.eventBus.emit("send_invoice_doc_payment", invoice_doc);
 	} catch (error: any) {
