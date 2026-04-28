@@ -145,6 +145,10 @@ function clearStalePartyFieldsForCustomerChange(
 
 export function get_invoice_doc(context: any) {
 	let doc: any = {};
+	// console.log("document.ts (get_invoice_doc) context: ", context); // Karan
+	// console.log("document.ts (get_invoice_doc) context.customer: ", context.customer); // Karan
+	// console.log("document.ts (get_invoice_doc) context.customer: ", context.customer_info); // Karan
+	// console.log("document.ts (get_invoice_doc) context.invoice_doc: ", context.invoice_doc); // Karan
 	const sourceDoc = context.invoice_doc || {};
 	const previousCustomer = sourceDoc.customer || null;
 

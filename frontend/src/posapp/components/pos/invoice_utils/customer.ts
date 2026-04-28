@@ -119,6 +119,8 @@ export function sync_invoice_customer_details(
 	context: any,
 	details: any = null,
 ) {
+	// console.log("customers.ts context.customer_info: ", context.customer_info);
+	// console.log("customers.ts details (arg): ", details);
 	if (context.invoice_doc) {
 		const activeCustomer =
 			typeof context.customer === "string" ? context.customer.trim() : "";
@@ -144,6 +146,10 @@ export function sync_invoice_customer_details(
 			context.invoice_doc.customer_name = activeCustomer;
 		}
 		if (!details) return;
+		if (details.customer_group)
+			context.invoice_doc.customer_group = details.customer_group;
+		if (details.customer_name)
+			context.invoice_doc.title = details.customer_name;
 		if (details.customer_address)
 			context.invoice_doc.customer_address = details.customer_address;
 		if (details.territory)

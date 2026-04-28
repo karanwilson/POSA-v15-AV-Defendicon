@@ -1038,6 +1038,7 @@ const back_to_invoice = () => {
 		uiStore.setActiveView("items");
 	}
 	queueSearchRefocusRecovery();
+	resetPaymentLines(); // Karan: for resetting 'preferred payment mode'
 };
 
 const finishSubmissionNavigation = (clearInvoice = false) => {
@@ -1089,6 +1090,7 @@ const syncPreferredPaymentToCurrentTotal = (doc = invoice_doc.value) => {
 	if (!preferredPayment) {
 		return null;
 	}
+	console.log("Payments.vue preferredPayment: ", preferredPayment);
 
 	const otherMeaningfulPayments = payments.filter((payment) => {
 		if (payment === preferredPayment) {
@@ -1189,6 +1191,7 @@ const ensurePaymentLinesInitialized = (doc = invoice_doc.value) => {
 		currency_precision.value,
 		isCashLikePayment,
 	);
+	console.log("Payments.vue (ensurePaymentLinesInitialized) initializedPayment: ", initializedPayment); // Karan
 
 	if (doc.is_return) {
 		ensureReturnPaymentsAreNegative();
@@ -1207,6 +1210,28 @@ const restorePaymentLinesAfterFailedSubmit = () => {
 
 	ensurePaymentLinesInitialized(doc);
 	is_credit_sale.value = false;
+};
+
+const resetPaymentLines = (doc = invoice_doc.value) => {
+	if (!doc) {
+		return;
+	}
+
+	if (!doc || !Array.isArray(doc.payments) || !doc.payments.length || is_credit_sale.value) {
+		return null;
+	}
+
+	const payments = doc.payments.filter((payment) => payment?.mode_of_payment);
+	if (!payments.length) {
+		return null;
+	}
+
+	payments.forEach((payment) => {
+		payment.amount = 0;
+		if (payment.base_amount !== undefined) {
+			payment.base_amount = 0;
+		}
+	});
 };
 
 const handleShowPayment = () => {

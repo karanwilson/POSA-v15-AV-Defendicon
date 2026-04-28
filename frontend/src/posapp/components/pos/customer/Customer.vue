@@ -441,7 +441,8 @@ export default {
 		const handleClearCustomer = (event) => {
 			tempSelectedCustomer.value = null;
 			internalCustomer.value = null;
-			customersStore.setSelectedCustomer(null);
+			//customersStore.setSelectedCustomer(null);
+			customersStore.clearLocalState();
 		}
 
 		const handleEnter = (event) => {

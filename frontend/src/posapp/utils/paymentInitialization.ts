@@ -103,6 +103,17 @@ export const resolvePreferredPaymentLine = (
 				null
 			);
 		}
+
+		else {
+			return (
+				payments.find(
+					(payment) => payment.default === 1 || payment.default === true,
+				) ||
+				payments.find((payment) => isCashLikePayment(payment)) ||
+				payments[0] ||
+				null
+			);
+		}
 	}
 
 	else if (doc?.company == 'Pour Tous Canteen') {
@@ -128,6 +139,17 @@ export const resolvePreferredPaymentLine = (
 				null
 			);
 			//this.upi = true;
+		}
+
+		else {
+			return (
+				payments.find(
+					(payment) => payment.default === 1 || payment.default === true,
+				) ||
+				payments.find((payment) => isCashLikePayment(payment)) ||
+				payments[0] ||
+				null
+			);
 		}
 	}
 
@@ -201,16 +223,29 @@ export const resolvePreferredPaymentLine = (
 				null
 			);
 		}
+
+		else {
+			return (
+				payments.find(
+					(payment) => payment.default === 1 || payment.default === true,
+				) ||
+				payments.find((payment) => isCashLikePayment(payment)) ||
+				payments[0] ||
+				null
+			);
+		}
 	}
 
-	return (
-		payments.find(
-			(payment) => payment.default === 1 || payment.default === true,
-		) ||
-		payments.find((payment) => isCashLikePayment(payment)) ||
-		payments[0] ||
-		null
-	);
+	else {
+		return (
+			payments.find(
+				(payment) => payment.default === 1 || payment.default === true,
+			) ||
+			payments.find((payment) => isCashLikePayment(payment)) ||
+			payments[0] ||
+			null
+		);
+	}
 };
 
 export const initializePaymentLinesForDialog = (
