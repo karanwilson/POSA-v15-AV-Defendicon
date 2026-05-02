@@ -242,6 +242,11 @@ export function get_invoice_doc(context: any) {
 		}
 	}
 
+	// Karan: Update FS Account number if exists.
+	doc.custom_fs_account_number = 
+		context.customer_info && typeof context.customer_info === "object"
+			? context.customer_info.custom_fs_account_number : null;
+
 	// Determine if this is a return invoice
 	const isReturn = context.isReturnInvoice;
 	doc.is_return = isReturn ? 1 : 0;
@@ -499,6 +504,7 @@ export function get_invoice_doc(context: any) {
 		});
 	}
 
+	//console.log("document.ts (get_invoice_doc) doc: ", doc); // Karan
 	return doc;
 }
 

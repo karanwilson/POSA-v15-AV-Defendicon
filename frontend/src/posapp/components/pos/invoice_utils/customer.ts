@@ -37,6 +37,7 @@ export async function fetch_customer_details(context: any) {
 					null,
 			},
 		});
+		// console.log("customer.ts r.message: ", r.message); // Karan
 
 		if (
 			r?.message &&
@@ -44,6 +45,7 @@ export async function fetch_customer_details(context: any) {
 			context.customer.trim() === requestedCustomer
 		) {
 			context.customer_info = r.message;
+			// console.log("customer.ts context.customer_info: ", context.customer_info); // Karan
 			await setCustomerStorage([r.message]);
 			if (context?.pos_profile?.company) {
 				const totalCredit = Number(r.message?.stored_value_balance || 0);
@@ -89,7 +91,7 @@ export async function fetch_customer_details(context: any) {
 			}
 			//console.log("customer.ts context.customer_info.custom_fs_account_number: ", context.customer_info.custom_fs_account_number); // Karan
 		}
-		//if (context.customer_info.custom_fs_account_number) return context.customer_info.custom_fs_account_number; // Karan
+
 	} catch (error) {
 		console.error("Error fetching customer details:", error);
 	}
@@ -119,7 +121,7 @@ export function sync_invoice_customer_details(
 	context: any,
 	details: any = null,
 ) {
-	// console.log("customers.ts context.customer_info: ", context.customer_info);
+	// console.log("customers.ts context.customer_info: ", context.customer_info); // Karan
 	// console.log("customers.ts details (arg): ", details);
 	if (context.invoice_doc) {
 		const activeCustomer =
@@ -146,8 +148,12 @@ export function sync_invoice_customer_details(
 			context.invoice_doc.customer_name = activeCustomer;
 		}
 		if (!details) return;
+		// Karan
 		if (details.customer_group)
 			context.invoice_doc.customer_group = details.customer_group;
+		if (details.custom_fs_account_number)
+			context.invoice_doc.custom_fs_account_number = details.custom_fs_account_number;
+
 		if (details.customer_name)
 			context.invoice_doc.title = details.customer_name;
 		if (details.customer_address)
@@ -160,6 +166,7 @@ export function sync_invoice_customer_details(
 			context.invoice_doc.shipping_address_name =
 				details.shipping_address;
 	}
+	// console.log("customers.ts context.invoice_doc: ", context.invoice_doc); // Karan
 }
 
 export function _applyPriceListRate(

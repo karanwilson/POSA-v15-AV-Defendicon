@@ -407,6 +407,8 @@ const giftCardMode = ref("redeem");
 const giftCardError = ref("");
 const giftCardRedemptions = ref([]);
 
+let fsBalanceAvailable = String;
+
 // Computed Properties
 const invoice_doc = computed({
 	get: () => invoiceStore.invoiceDoc || {},
@@ -570,6 +572,7 @@ const {
 	request_payment,
 	getVisibleDenominations,
 	isCashLikePayment,
+	make_fs_payment,
 } = usePaymentMethods({
 	invoiceDoc: computed(() => invoiceStore.invoiceDoc),
 	posProfile: pos_profile,
@@ -1559,6 +1562,104 @@ const scheduleBackgroundStatusCheck = ({
 
 // Submission Wrapper
 const submit = async (_event, payment_received = false, print = false) => {
+	// trigger the payments here
+
+	//if (pos_profile.value.posa_enable_icici_pos_payments) {
+	if (pos_profile.value.company == 'Pour Tous Purchasing Service' || pos_profile.value.company == 'Auroville Bakery' ||
+			pos_profile.value.company == 'AV Bakery Cafe' || pos_profile.value.company == 'AV Bakery Cafe Townhall') {
+
+		for (const payment of invoice_doc.value.payments) {
+			console.log("Mode of Payment: ", payment.mode_of_payment);
+			console.log("payments.vue fsBalanceAvailable: ", fsBalanceAvailable);
+
+			if (payment.amount !== 0) { // if < 0 then it is a return transaction
+
+				payment.amount = flt(payment.amount, currency_precision.value);
+				console.log("payment.amount", payment.amount);
+
+				if (payment.mode_of_payment === "FS") {
+					//const res = await make_fs_payment(payment.amount, fsBalanceAvailable.value);
+					const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
+					console.log("fs_payment_response res: ", res);
+					console.log("fs_payment_response res.remarks: ", res.remarks);
+					if (res) {
+						console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
+
+						invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
+						if (res.custom_fs_transfer_status == "OK") {
+							invoice_doc.value.remarks = res.remarks;
+							payment_received = true;
+						}
+						if (res.is_credit_sale) is_credit_sale.value = true;
+					}
+					break;
+				}
+
+				else if (payment.mode_of_payment === "Aurocard") {
+					const aurocard_payment_response = await make_aurocard_payment();
+					console.log("aurocard_payment_response: ", aurocard_payment_response);
+					break;
+				}
+
+				else if (payment.mode_of_payment === "UPI") {
+					const tran_type = 16;
+					const tip_amount = 0;
+					this.print_upi = print; // for passing print option to the UPI payment flow
+					const res = await make_icici_upi_payment(tran_type, payment.amount, tip_amount);
+					console.log("upi_payment_response: ", res);
+					break;
+				}
+				else if (payment.mode_of_payment === "RuPay") {
+					const tran_type = 1;
+					const tip_amount = 0;
+					this.print_upi = print; // for passing print option to the UPI payment flow
+					const res = await make_icici_upi_payment(tran_type, payment.amount, tip_amount);
+					console.log("upi_payment_response: ", res);
+					break;
+				}
+				else if (payment.mode_of_payment === "Cards") {
+					const tran_type = 1;
+					const tip_amount = 0;
+					this.print_upi = print; // for passing print option to the UPI payment flow
+					const res = await make_icici_upi_payment(tran_type, payment.amount, tip_amount);
+					console.log("upi_payment_response: ", res);
+					break;
+				}
+			}
+		}
+	}
+
+	else {
+		for (const payment of invoice_doc.value.payments) {
+			console.log("Mode of Payment: ", payment.mode_of_payment);
+
+			if (payment.amount !== 0) { // if < 0 then it is a return transaction
+				payment.amount = flt(payment.amount, currency_precision.value);
+				console.log("payment.amount", payment.amount);
+
+				if (payment.mode_of_payment === "FS") {
+					fs_amount.value = payment.amount;
+					const res = await make_fs_payment();
+					console.log("fs_payment_response: ", res);
+					if (res.fs_payment_response == true) payment_received = true;
+					break;
+				}
+
+				else if (payment.mode_of_payment === "Aurocard") {
+					const aurocard_payment_response = await make_aurocard_payment();
+					console.log("aurocard_payment_response: ", aurocard_payment_response);
+					break;
+				}
+				else if (payment.mode_of_payment === "UPI") {
+					const upi_payment_response = await make_upi_payment();
+					console.log("upi_payment_response: ", upi_payment_response);
+					break;
+				}
+			}
+		}
+	}
+
+	// if payment successfull, then submitInvoiceWrapper with paymentReceived, here:-
 	await submitInvoiceWrapper(print, undefined, {
 		paymentReceived: payment_received,
 	});
@@ -1940,28 +2041,29 @@ onMounted(() => {
 	eventBus.on("server-online", () => syncStore.syncPendingInvoices());
 
 	if (eventBus) {
-		eventBus.on("send_invoice_doc_payment", (doc) => {
-			invoiceStore.setInvoiceDoc(doc);
-			void refreshPaymentCustomerInfo(doc);
-			paid_change.value = flt(doc.paid_change || 0, currency_precision.value);
-			credit_change.value = flt(doc.credit_change || 0, currency_precision.value);
+		eventBus.on("send_invoice_doc_payment", (data) => {
+			invoiceStore.setInvoiceDoc(data.doc);
+			void refreshPaymentCustomerInfo(data.doc);
+			paid_change.value = flt(data.doc.paid_change || 0, currency_precision.value);
+			credit_change.value = flt(data.doc.credit_change || 0, currency_precision.value);
 			last_payment_change_was_cash.value = null;
 			is_credit_sale.value = false;
 			is_write_off_change.value = false;
 
-			const initializedPayment = ensurePaymentLinesInitialized(doc);
+			fsBalanceAvailable = data.fs_balance_available;
+			const initializedPayment = ensurePaymentLinesInitialized(data.doc);
 
-			if (doc.is_return) {
+			if (data.doc.is_return) {
 				is_return.value = true;
 				is_credit_return.value = false;
 			} else if (initializedPayment) {
 				is_credit_return.value = false;
 			}
-			initializeReturnValidity(doc);
+			initializeReturnValidity(data.doc);
 			loyalty_amount.value = 0;
 			redeemed_customer_credit.value = 0;
 			resetGiftCardState({ clearPayment: true });
-			if (doc.customer) {
+			if (data.doc.customer) {
 				get_addresses();
 			}
 			get_sales_person_names();

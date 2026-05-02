@@ -793,7 +793,8 @@ export function usePaymentSubmission(options: PaymentSubmissionOptions) {
 				pChange > 0 ||
 				cChange > 0);
 
-		if (isOffline()) {
+		// Karan: removing the offline save option, as these invoices can be lost when browser cache is cleared
+		/* if (isOffline()) {
 			if (hasGiftCardRedemption) {
 				throw new Error(
 					__("Gift card redemption requires an online connection"),
@@ -828,7 +829,7 @@ export function usePaymentSubmission(options: PaymentSubmissionOptions) {
 				});
 				throw error;
 			}
-		}
+		} */
 
 		// Online Submission
 		try {

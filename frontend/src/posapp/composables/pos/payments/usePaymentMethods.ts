@@ -407,6 +407,64 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 		}
 	};
 
+	// Karan
+    const make_fs_payment = (
+		fs_amount: number,
+		fsBalanceAvailable: string,
+	) => {
+		return new Promise(async (resolve, reject) => {
+			const doc = unref(invoiceDoc);
+			// console.log("usePaymentMethods fsBalanceAvailable", fsBalanceAvailable);
+			// console.log("usePaymentMethods doc: ", doc);
+
+			const r = await frappe.call({
+				method: "payments.payment_gateways.doctype.fs_settings.fs_settings.add_transfer_billing",
+				args: {
+					invoice_doc: doc,
+					fAmount: fs_amount,
+					fs_acc_balance: fsBalanceAvailable,
+				},
+			});
+
+			let res = {};
+			if (r.message) {
+				res["custom_fs_transfer_status"] = r.message["custom_fs_transfer_status"];
+				// if (remarks)
+				// 	doc.remarks += "\n\n" + r.message["remarks"]; // in case of remarks
+				// else if (r.message["remarks"] != "Null") // In case of "Insufficient Funds"
+				if (r.message["remarks"] != "Null") // In case of "Insufficient Funds"
+					res["remarks"] = r.message["remarks"];
+
+				if (res["custom_fs_transfer_status"] == "OK") {
+					resolve(res);
+				}
+				else if (res["custom_fs_transfer_status"] == "Insufficient Funds" ||
+					res["custom_fs_transfer_status"] == "Failed" || res["custom_fs_transfer_status"] == "Queued") {
+						res["is_credit_sale"] = true;
+						//doc.custom_fs_transfer_status = "Insufficient Funds";
+						//doc.outstanding_amount = fs_amount;
+						//doc.due_date = frappe.datetime.month_end(); // setting the due_date for is_credit_sale (if set) to last day of the month
+						resolve(res);
+				}
+				else {
+					stores.toastStore.show({
+						title: __(res["custom_fs_transfer_status"]),
+						color: "error",
+					});
+					reject(res);
+				}
+			}
+			else {
+				stores.toastStore.show({
+					title: __("Payment Unsuccessfull"),
+					color: "error",
+				});
+				res["error"] = "Payment Unsuccessfull";
+				reject(res);
+			}
+		})
+    };
+
 	return {
 		mpesa_modes,
 		phone_dialog,
@@ -422,5 +480,6 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 		getVisibleDenominations,
 		isCashLikePayment,
 		reset_cash_payments,
+		make_fs_payment, // Karan
 	};
 }

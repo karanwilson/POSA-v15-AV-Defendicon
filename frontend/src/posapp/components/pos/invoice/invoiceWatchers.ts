@@ -8,6 +8,7 @@ interface WatcherItem {
 }
 
 interface InvoiceWatchersVm {
+	// $nextTick: (callback?: () => void) => Promise<void>; // Karan
 	customer?: string | null;
 	customer_info?: Record<string, unknown>;
 	items: WatcherItem[];
@@ -119,10 +120,11 @@ const invoiceWatchers: Record<string, unknown> & ThisType<InvoiceWatchersVm> = {
 			// Karan:
 			console.log("invoiceWatchers.ts customersStore.customerInfo.custom_fs_account_number: ", customersStore.customerInfo.custom_fs_account_number);
 			//console.log("custom_fs_account_number: ", custom_fs_account_number);
-			if (this.pos_profile?.posa_enable_fs_payments)
-				if (customersStore.customerInfo.custom_fs_account_number) 
+			if (this.pos_profile?.posa_enable_fs_payments) {
+				if (customersStore.customerInfo.custom_fs_account_number)
 					this.fetch_customer_fs_balance();
 				else this.reset_customer_fs_balance();
+			}
 		}
 		this.set_delivery_charges();
 		this.sync_invoice_customer_details();

@@ -146,8 +146,12 @@ export async function show_payment(context: any) {
 		await new Promise((resolve) => setTimeout(resolve, 0));
 
 		// console.log("Dialogs.ts (show_payment) invoice_doc: ", invoice_doc); // Karan
+		// console.log("Dialogs.ts (show_payment) context: ", context); // Karan
 		context.eventBus.emit("show_payment", "true");
-		context.eventBus.emit("send_invoice_doc_payment", invoice_doc);
+		context.eventBus.emit("send_invoice_doc_payment", {
+			doc: invoice_doc,
+			fs_balance_available: context.fs_balance_available,
+		});
 	} catch (error: any) {
 		console.error("Error in show_payment:", error);
 		context.toastStore.show({

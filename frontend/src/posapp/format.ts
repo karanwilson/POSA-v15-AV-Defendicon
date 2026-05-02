@@ -224,12 +224,13 @@ export function useFormat() {
 	});
 
 	const currency_precision = computed(() => {
-		const prec = parseInt(
-			uiStore.posProfile?.posa_decimal_precision as any,
-		);
-		return isNaN(prec)
-			? frappe.defaults.get_default("currency_precision") || 2
-			: prec;
+		return frappe.defaults.get_default("currency_precision") || 2;
+		// const prec = parseInt(
+		// 	uiStore.posProfile?.posa_decimal_precision as any,
+		// );
+		// return isNaN(prec)
+		// 	? frappe.defaults.get_default("currency_precision") || 2
+		// 	: prec;
 	});
 
 	/**
