@@ -286,6 +286,8 @@ export async function process_invoice(context: any) {
 		items_before: _buildPriceListSnapshot(context, doc.items),
 	});
 	const persistInvoice = async () => {
+		// console.log("process_invoice server.ts doc: ", doc); // Karan
+		// console.log("process_invoice server.ts context: ", context); // Karan
 		const updatedDoc = await update_invoice(context, doc);
 		if (updatedDoc && updatedDoc.posting_date) {
 			context.posting_date = context.formatDateForBackend

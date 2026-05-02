@@ -176,8 +176,8 @@ export interface POSProfile {
 export interface Customer {
   name: string;
   customer_name: string;
-  custom_fs_account_number?: string; // AV Financial Service Account
-  customer_group: string;
+  custom_fs_account_number?: string; // Karan: AV Financial Service Account
+  customer_group: string; // Karan
   territory: string;
   email_id?: string;
   mobile_no?: string;
@@ -190,6 +190,7 @@ export interface Customer {
 export interface CustomerSummary {
   name: string;
   customer_name: string;
+  custom_fs_account_number?: string; // Karan
   email_id?: string;
   mobile_no?: string;
   primary_address?: string;

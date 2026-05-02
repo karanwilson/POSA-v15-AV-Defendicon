@@ -98,7 +98,9 @@ export const resolvePreferredPaymentLine = (
 	}
 
 	// Karan:
-	if (doc?.company == 'Pour Tous Purchasing Service') {
+	if (doc?.company == 'Pour Tous Purchasing Service' || doc?.company == 'Auroville Bakery' ||
+			doc?.company == 'AV Bakery Cafe' || doc?.company == 'AV Bakery Cafe Townhall') {
+
 		if (doc.customer_group == "Aurocard Payments") {
 			return (
 				payments.find(
@@ -145,6 +147,39 @@ export const resolvePreferredPaymentLine = (
 			);
 		}
 
+		else if (doc.customer_group == "Card Payments") {
+			return (
+				payments.find(
+					(payment) => payment.mode_of_payment == "Cards"
+				) ||
+				payments.find((payment) => isCashLikePayment(payment)) ||
+				payments[0] ||
+				null
+			);
+		}
+
+		else if (doc.customer_group == "Cash Payments") {
+			return (
+				payments.find(
+					(payment) => payment.mode_of_payment == "Cash"
+				) ||
+				payments.find((payment) => isCashLikePayment(payment)) ||
+				payments[0] ||
+				null
+			);
+		}
+
+		else if (doc.customer_group == "NEFT Payments") {
+			return (
+				payments.find(
+					(payment) => payment.mode_of_payment == "NEFT"
+				) ||
+				payments.find((payment) => isCashLikePayment(payment)) ||
+				payments[0] ||
+				null
+			);
+		}
+
 		else {
 			return (
 				payments.find(
@@ -180,89 +215,6 @@ export const resolvePreferredPaymentLine = (
 				null
 			);
 			//this.upi = true;
-		}
-
-		else {
-			return (
-				payments.find(
-					(payment) => payment.default === 1 || payment.default === true,
-				) ||
-				payments.find((payment) => isCashLikePayment(payment)) ||
-				payments[0] ||
-				null
-			);
-		}
-	}
-
-
-	else if (doc?.company == 'Auroville Bakery' ||
-			doc?.company == 'AV Bakery Cafe' || doc?.company == 'AV Bakery Cafe Townhall') {
-		if (doc.customer_group == "Aurocard Payments") {
-			return (
-				payments.find(
-					(payment) => payment.mode_of_payment == "Aurocard"
-				) ||
-				payments.find((payment) => isCashLikePayment(payment)) ||
-				payments[0] ||
-				null
-			);
-			//this.aurocard = true;
-		}
-
-		else if (doc.customer_group == "UPI Payments") {
-			return (
-				payments.find(
-					(payment) => payment.mode_of_payment == "ICICI UPI"
-				) ||
-				payments.find((payment) => isCashLikePayment(payment)) ||
-				payments[0] ||
-				null
-			);
-			//this.upi = true;
-		}
-
-		else if (doc.customer_group == "MOP RuPay") {
-			return (
-				payments.find(
-					(payment) => payment.mode_of_payment == "RuPay"
-				) ||
-				payments.find((payment) => isCashLikePayment(payment)) ||
-				payments[0] ||
-				null
-			);
-		}
-
-		else if (doc.customer_group == "Card Payments") {
-			return (
-				payments.find(
-					(payment) => payment.mode_of_payment == "Cards"
-				) ||
-				payments.find((payment) => isCashLikePayment(payment)) ||
-				payments[0] ||
-				null
-			);
-		}
-
-		else if (doc.customer_group == "Cash Payments") {
-			return (
-				payments.find(
-					(payment) => payment.mode_of_payment == "Cash"
-				) ||
-				payments.find((payment) => isCashLikePayment(payment)) ||
-				payments[0] ||
-				null
-			);
-		}
-
-		else if (doc.customer_group == "NEFT Payments") {
-			return (
-				payments.find(
-					(payment) => payment.mode_of_payment == "NEFT"
-				) ||
-				payments.find((payment) => isCashLikePayment(payment)) ||
-				payments[0] ||
-				null
-			);
 		}
 
 		else {
