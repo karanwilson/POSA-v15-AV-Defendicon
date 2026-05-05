@@ -625,6 +625,7 @@ export const useItemsStore = defineStore("items", () => {
 			}
 
 			updatePerformanceMetrics(startTime);
+			// console.log("useItemsStore loadItems fetchedItems.length", fetchedItems.length); // Karan
 			return fetchedItems;
 		} catch (error: any) {
 			if (error.name !== "AbortError") {

@@ -179,16 +179,28 @@ export function useItemSelection() {
 		if (ctx.focusItemSearch) ctx.focusItemSearch();
 	}
 
+	// Karan: in case (ctx.displayedItems.length == 1), then there is an item_code match, as the filters were customised accordingly
 	function selectTopItem() {
-		if (!ctx.displayedItems || !ctx.displayedItems.length) {
-			return;
+		//if (!ctx.displayedItems || !ctx.displayedItems.length) {
+		if (!ctx.displayedItems || !ctx.displayedItems.length || ctx.displayedItems.length != 1) {
+			return false;
+			//return;
 		}
 		const firstItem = ctx.displayedItems[0];
+		// console.log("useItemSelection selectTopItem firstItem: ", firstItem);
 		if (!firstItem) {
-			return;
+			return false;
+			//return;
 		}
 		if (ctx.addItem) {
 			ctx.addItem(firstItem);
+		}
+	}
+
+	// Karan: --- Add item matched by item_code ---
+	function add_item(item) {
+		if (ctx.addItem) {
+			ctx.addItem(item);
 		}
 	}
 
@@ -311,6 +323,7 @@ export function useItemSelection() {
 		getItemRowClass,
 		getItemRowProps,
 		selectTopItem,
+		add_item,
 		handleItemSelection,
 		handleRowClick,
 		handleSearchKeydown,

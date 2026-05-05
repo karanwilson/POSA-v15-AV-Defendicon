@@ -1073,20 +1073,19 @@ const {
 
 // Proxy functions for template
 const esc_event = () => clearSearch();
-const onEnter = (e) => {
+const onEnter = (e) => { // Karan: customised for Item_code based matches
 	// console.log("typeof e: ", typeof e);
-	// console.log("typeof e == undefined ", typeof e == undefined);
 	// console.log("typeof e === undefined ", typeof e === undefined);
 	// console.log("(e === underfined): ", e === undefined);
-	// console.log("(e == underfined): ", e == undefined);
-	// console.log("onEnter: ", onEnter);
-	//console.log("e: ", e);
-	// console.log("displayedItems: ", displayedItems);
-	// console.log("displayedItems.value: ", displayedItems.value);
-	// console.log("displayedItems.value.length: ", displayedItems.value.length);
-	//if (displayedItems.value.length == 1) itemSelection.selectTopItem();
+	// console.log("e: ", e);
 	if (e) itemsSelectorSearch.onEnter(e);
-	else itemSelection.selectTopItem();
+	else {
+		const added = itemSelection.selectTopItem();
+		if (added == false) {
+			const item = itemsIntegration.findItemByCode(search_input.value);
+			if (item) itemSelection.add_item(item);
+		}
+	}
 }
 //const onEnter = (e) => itemsSelectorSearch.onEnter(e);
 const handleSearchKeydown = (e) => itemsSelectorFocus.handleSearchKeydown(e);

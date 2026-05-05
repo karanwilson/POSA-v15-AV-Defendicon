@@ -187,14 +187,14 @@ export const useItemsSelectorSearch = ({
 		return scal_qty;
 	};
 
-	// Item load happens here, but only from a barcode scan
+	// Karan: Item load happens here, but only from a barcode scan
 	const enter_event = async (scannedCode?: string) => {
 		const vm = getVm();
-		console.log("vm: ", vm);
 		if (!vm) return;
 
 		const searchTerm = scannedCode || vm.first_search;
 		await scannerInput.ensureScaleBarcodeSettings();
+		// Karan: in case of Item Code based search: displayedItems below is not defined ..
 		if (!vm.displayedItems.length || !searchTerm) {
 			return;
 		}
@@ -304,7 +304,7 @@ export const useItemsSelectorSearch = ({
 
 		// Require a minimum of three characters before running a search
 		//if (!trimmedQuery || trimmedQuery.length < 3) {
-		if (!trimmedQuery || trimmedQuery.length < 2) { // Require a minimum of two characters before running a search
+		if (!trimmedQuery) { // no minimum number of characters before running a search, as some units have single digit Item Codes
 			vm.search_from_scanner = false;
 			return;
 		}
@@ -340,7 +340,7 @@ export const useItemsSelectorSearch = ({
 				await loadVisibleItems(true);
 			}
 			triggerEnterEvent(vm);
-		} else {
+		} else { // Karan: search flow passes from here
 			// When local storage is disabled, always fetch items
 			// from the server so searches aren't limited to the
 			// initially loaded set.

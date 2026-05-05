@@ -1570,7 +1570,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 
 		for (const payment of invoice_doc.value.payments) {
 			console.log("Mode of Payment: ", payment.mode_of_payment);
-			console.log("payments.vue fsBalanceAvailable: ", fsBalanceAvailable);
+			// console.log("payments.vue fsBalanceAvailable: ", fsBalanceAvailable);
 
 			if (payment.amount !== 0) { // if < 0 then it is a return transaction
 
@@ -1581,7 +1581,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 					//const res = await make_fs_payment(payment.amount, fsBalanceAvailable.value);
 					const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
 					console.log("fs_payment_response res: ", res);
-					console.log("fs_payment_response res.remarks: ", res.remarks);
+					// console.log("fs_payment_response res.remarks: ", res.remarks);
 					if (res) {
 						console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
 
