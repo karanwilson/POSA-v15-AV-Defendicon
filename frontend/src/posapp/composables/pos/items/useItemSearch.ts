@@ -197,7 +197,6 @@ export function useItemSearch() {
 			limit = 50,
 		} = {},
 	) => {
-		console.log("searchTerm: ", searchTerm);
 		if (!items || !items.length) return [];
 
 		const term = (searchTerm || "").trim().toLowerCase();
@@ -221,7 +220,6 @@ export function useItemSearch() {
 
 		const result: SearchItem[] = [];
 		const activeTerms = searchTerms || [];
-		console.log("activeTerms: ", activeTerms);
 
 		const resolveItemRate = (item: SearchItem): number => {
 			const candidates = [
@@ -248,10 +246,11 @@ export function useItemSearch() {
 			if (needsLocalSearch) {
 				let matches = false;
 
-				// Adding exact match for Item Codes
-				if (item.item_code == searchTerm) {
-					// console.log("Inside if (item.item_code == searchTerm)");
+				// Karan: Adding exact match for Item Codes
+				if (item.item_code === searchTerm) {
+					// console.log("Inside if (item.item_code === searchTerm)");
 					// console.log("item.item_code: ", item.item_code);
+					result.splice(0); // empties the array: remove any non-exact matches, if present
 					result.push(item);
 					break;
 				}
@@ -303,7 +302,8 @@ export function useItemSearch() {
 			}
 		}
 
-		console.log("filterAndPaginate result: ", result);
+		console.log("result.length: ", result.length); // Karan
+		// console.log("filterAndPaginate result: ", result);
 		return result;
 	};
 

@@ -61,8 +61,8 @@ const statusColor = computed(() => {
 	if (props.customer && props.fs_balance_available != null)
 		fs_balance_available_float = parseFloat(props.fs_balance_available);
 	else fs_balance_available_float = null;
-	console.log("props.fs_balance_available: ", props.fs_balance_available);
-	console.log("fs_balance_available_float: ", fs_balance_available_float);
+	// console.log("props.fs_balance_available: ", props.fs_balance_available);
+	// console.log("fs_balance_available_float: ", fs_balance_available_float);
 	// console.log("props.networkOnline: ", props.networkOnline);
 	// console.log("props.fs_balance_message: ", props.fs_balance_message);
 	// console.log("props.customer: ", props.customer);

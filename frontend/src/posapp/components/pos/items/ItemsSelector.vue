@@ -1801,7 +1801,13 @@ const onEnter = (e) => {
 	}
 	// itemsSelectorSearch.onEnter(e);
 	if (e) itemsSelectorSearch.onEnter(e);
-	else itemSelection.selectTopItem();
+	else {
+		const added = itemSelection.selectTopItem();
+		if (added == false) {
+			const item = itemsIntegration.findItemByCode(search_input.value);
+			if (item) itemSelection.add_item(item);
+		}
+	}
 };
 const handleSearchKeydown = (e) => itemsSelectorFocus.handleSearchKeydown(e);
 const handleSearchPaste = (e) => itemsSelectorFocus.handleSearchPaste(e);
