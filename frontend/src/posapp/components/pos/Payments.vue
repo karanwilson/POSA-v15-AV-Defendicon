@@ -1215,6 +1215,7 @@ const restorePaymentLinesAfterFailedSubmit = () => {
 	is_credit_sale.value = false;
 };
 
+// Karan
 const resetPaymentLines = (doc = invoice_doc.value) => {
 	if (!doc) {
 		return;
@@ -1223,6 +1224,10 @@ const resetPaymentLines = (doc = invoice_doc.value) => {
 	if (!doc || !Array.isArray(doc.payments) || !doc.payments.length || is_credit_sale.value) {
 		return null;
 	}
+
+	doc.taxes?.splice(0);
+	doc.taxes_and_charges = null;
+	//console.log("payments.vue resetPaymentLines doc: ", doc);
 
 	const payments = doc.payments.filter((payment) => payment?.mode_of_payment);
 	if (!payments.length) {
