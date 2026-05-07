@@ -348,6 +348,28 @@ def calc_delivery_charges(doc):
 def apply_tax_inclusive(doc):
     """Mark taxes as inclusive based on POS Profile setting."""
     apply_pos_tax_inclusion_contract(doc)
+    # if not doc.pos_profile:
+    #     return
+    # try:
+    #     tax_inclusive = frappe.get_cached_value("POS Profile", doc.pos_profile, "posa_tax_inclusive")
+    # except Exception:
+    #     tax_inclusive = 0
+
+    # has_changes = False
+    # for tax in doc.get("taxes", []):
+    #     if tax.charge_type == "Actual":
+    #         if tax.included_in_print_rate:
+    #             tax.included_in_print_rate = 0
+    #             has_changes = True
+    #             continue # Karan: correcting the tab spacing to make the if/elif statements below reachable
+    #     if tax_inclusive and not tax.included_in_print_rate:
+    #         tax.included_in_print_rate = 1
+    #         has_changes = True
+    #     elif not tax_inclusive and tax.included_in_print_rate:
+    #         tax.included_in_print_rate = 0
+    #         has_changes = True
+    # if has_changes:
+    #     doc.calculate_taxes_and_totals()
 
 
 def validate_shift(doc):
