@@ -138,3 +138,14 @@ def get_party_account_info(party_type, party, company):
         "account_name": account_name,
         "currency": currency,
     }
+
+# Karan: for Chargeable MOPs
+@frappe.whitelist()
+def get_trans_fee_details(company, mop):
+    custom_transaction_fee_percentage = frappe.db.get_value("Mode of Payment", mop, 'custom_transaction_fee_percentage')
+
+    return {
+        "custom_transaction_fee_percentage": custom_transaction_fee_percentage,
+        "cost_center": frappe.db.get_value("Company", company, "cost_center"),
+        "account_head": frappe.db.get_value("UPI Settings", "UPI Settings", "transaction_fee_account")
+    }

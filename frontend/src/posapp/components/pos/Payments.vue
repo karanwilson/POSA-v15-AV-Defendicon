@@ -249,12 +249,17 @@
 			:custom-days-dialog="custom_days_dialog"
 			:custom-days-value="custom_days_value"
 			:phone-dialog="phone_dialog"
+			:icici-dialog="icici_dialog"
+			:upi-online-color="upi_online_color"
 			:invoice-doc="invoice_doc"
 			@update:custom-days-dialog="custom_days_dialog = $event"
 			@update:custom-days-value="custom_days_value = $event"
 			@apply-custom-days="applyCustomDays"
 			@update:phone-dialog="phone_dialog = $event"
 			@request-payment="request_payment"
+			@cancel-upi-payment="cancel_upi_payment"
+			@get-upi-confirmation="getUpiConfirmation"
+			@bypass-dynamic-qr="bypassDynamicQr"
 		/>
 		<GiftCardDialog
 			:model-value="giftCardDialogOpen"
@@ -407,7 +412,7 @@ const giftCardMode = ref("redeem");
 const giftCardError = ref("");
 const giftCardRedemptions = ref([]);
 
-let fsBalanceAvailable = String;
+let fsBalanceAvailable = "";
 
 // Computed Properties
 const invoice_doc = computed({
@@ -563,6 +568,8 @@ const { diff_payment, total_payments, total_payments_display, diff_payment_displ
 
 const {
 	phone_dialog,
+	icici_dialog,
+	upi_online_color,
 	get_mpesa_modes,
 	is_mpesa_c2b_payment,
 	mpesa_c2b_dialog,
@@ -573,6 +580,10 @@ const {
 	getVisibleDenominations,
 	isCashLikePayment,
 	make_fs_payment,
+	make_icici_upi_payment,
+	get_upi_confirmation,
+	cancel_upi_payment,
+	bypass_dynamic_qr,
 } = usePaymentMethods({
 	invoiceDoc: computed(() => invoiceStore.invoiceDoc),
 	posProfile: pos_profile,
@@ -1079,7 +1090,41 @@ const buildProfilePaymentLines = () => {
 		}));
 };
 
-const syncPreferredPaymentToCurrentTotal = (doc = invoice_doc.value) => {
+// Karan: adding functionality for Card charges
+const check_chargeable_mop = async (doc, mop_preferred) => {
+	const r = await frappe.call({
+		method: "posawesome.posawesome.api.payment_processing.utils.get_trans_fee_details",
+		args: {
+			company: doc.company,
+			mop: mop_preferred,
+		},
+		async: true,
+	});
+
+	const found = doc.taxes.find((row) => row.account_head === r.message["account_head"]);
+
+	// Karan: currently ERPNext Validation is failing due to general checks of included_in_print_rate
+	// however, this row specifically has included_in_print_rate unchecked '0': hoping the next version will pass this in Validation
+	// Else: create custom bypass for this row, with included_in_print_rate as '0'
+	if (!found && r.message["custom_transaction_fee_percentage"] > 0) {
+		const transaction_fee = flt(doc.grand_total * r.message["custom_transaction_fee_percentage"]/100, currency_precision.value);
+
+		doc.taxes.push({
+			account_head: r.message["account_head"],
+			charge_type: "Actual",
+			//charge_type: "On Net Total",
+			description: __("{0} Charges", [mop_preferred]),
+			//rate: r.message["custom_transaction_fee_percentage"],
+			tax_amount: transaction_fee,
+			cost_center: r.message["cost_center"],
+			included_in_print_rate: 0,
+		});
+		console.log("Payments.vue doc: ", doc);
+	}
+};
+
+
+const syncPreferredPaymentToCurrentTotal = async (doc = invoice_doc.value) => {
 	if (!doc || !Array.isArray(doc.payments) || !doc.payments.length || is_credit_sale.value) {
 		return null;
 	}
@@ -1089,7 +1134,15 @@ const syncPreferredPaymentToCurrentTotal = (doc = invoice_doc.value) => {
 		return null;
 	}
 
-	const preferredPayment = resolvePreferredPaymentLine(doc, isCashLikePayment);
+	// Karan: Adding code for Customer-MOP mapping
+	const r = await frappe.db.get_value("Mode of Payment", {'custom_customer_group': doc.customer_group}, 'mode_of_payment');
+	const mop_preferred = r.message["mode_of_payment"];
+	console.log("Payments.vue syncPreferredPaymentToCurrentTotal mop_preferred: ", mop_preferred);
+
+	// Karan: adding functionality for Card charges
+	const check_tran_fee = await check_chargeable_mop(doc, mop_preferred);
+
+	const preferredPayment = resolvePreferredPaymentLine(doc, isCashLikePayment, mop_preferred);
 	if (!preferredPayment) {
 		return null;
 	}
@@ -1172,7 +1225,7 @@ const mergeProfilePaymentsIntoReturn = (doc) => {
 	});
 };
 
-const ensurePaymentLinesInitialized = (doc = invoice_doc.value) => {
+const ensurePaymentLinesInitialized = async (doc = invoice_doc.value) => {
 	if (!doc) {
 		return null;
 	}
@@ -1189,10 +1242,16 @@ const ensurePaymentLinesInitialized = (doc = invoice_doc.value) => {
 		mergeProfilePaymentsIntoReturn(doc);
 	}
 
+	// Karan: Adding code for Customer-MOP mapping
+	const r = await frappe.db.get_value("Mode of Payment", {'custom_customer_group': doc.customer_group}, 'mode_of_payment');
+	const mop_preferred = r.message["mode_of_payment"];
+	console.log("Payments.vue ensurePaymentLinesInitialized mop_preferred: ", mop_preferred);
+
 	const initializedPayment = initializePaymentLinesForDialog(
 		doc,
 		currency_precision.value,
 		isCashLikePayment,
+		mop_preferred,
 	);
 	console.log("Payments.vue (ensurePaymentLinesInitialized) initializedPayment: ", initializedPayment); // Karan
 
@@ -1200,7 +1259,12 @@ const ensurePaymentLinesInitialized = (doc = invoice_doc.value) => {
 		ensureReturnPaymentsAreNegative();
 	}
 
-	syncPreferredPaymentToCurrentTotal(doc);
+	const preferredPayment = await syncPreferredPaymentToCurrentTotal(doc);
+	// Karan: Updating the backend Invoice with Chargeable MOP set
+	const updateResponse = await frappe.call({
+		method: "posawesome.posawesome.api.invoices.update_invoice",
+		args: { data: doc },
+	});
 
 	return initializedPayment;
 };
@@ -1567,11 +1631,13 @@ const scheduleBackgroundStatusCheck = ({
 
 // Submission Wrapper
 const submit = async (_event, payment_received = false, print = false) => {
-	// trigger the payments here
+	// Karan: trigger the payments here
 
-	//if (pos_profile.value.posa_enable_icici_pos_payments) {
-	if (pos_profile.value.company == 'Pour Tous Purchasing Service' || pos_profile.value.company == 'Auroville Bakery' ||
-			pos_profile.value.company == 'AV Bakery Cafe' || pos_profile.value.company == 'AV Bakery Cafe Townhall') {
+	// if (pos_profile.value.company == 'Pour Tous Purchasing Service' || pos_profile.value.company == 'Auroville Bakery' ||
+	// 		pos_profile.value.company == 'AV Bakery Cafe' || pos_profile.value.company == 'AV Bakery Cafe Townhall') {
+	if (pos_profile.value.posa_enable_icici_pos_payments) {
+		let icici_pos = false;
+		let tran_type = null;
 
 		for (const payment of invoice_doc.value.payments) {
 			console.log("Mode of Payment: ", payment.mode_of_payment);
@@ -1607,27 +1673,40 @@ const submit = async (_event, payment_received = false, print = false) => {
 				}
 
 				else if (payment.mode_of_payment === "UPI") {
-					const tran_type = 16;
-					const tip_amount = 0;
-					this.print_upi = print; // for passing print option to the UPI payment flow
-					const res = await make_icici_upi_payment(tran_type, payment.amount, tip_amount);
-					console.log("upi_payment_response: ", res);
-					break;
+					tran_type = 16;
+					icici_pos = true;
+					//break;
 				}
 				else if (payment.mode_of_payment === "RuPay") {
-					const tran_type = 1;
-					const tip_amount = 0;
-					this.print_upi = print; // for passing print option to the UPI payment flow
-					const res = await make_icici_upi_payment(tran_type, payment.amount, tip_amount);
-					console.log("upi_payment_response: ", res);
-					break;
+					tran_type = 1;
+					icici_pos = true;
+					//break;
 				}
 				else if (payment.mode_of_payment === "Cards") {
-					const tran_type = 1;
-					const tip_amount = 0;
-					this.print_upi = print; // for passing print option to the UPI payment flow
-					const res = await make_icici_upi_payment(tran_type, payment.amount, tip_amount);
-					console.log("upi_payment_response: ", res);
+					tran_type = 1;
+					icici_pos = true;
+					//break;
+				}
+
+				if (icici_pos) {
+					const res = await make_icici_upi_payment(tran_type, payment.amount, print);
+					console.log("pos_payment_response: ", res);
+					invoice_doc.value.custom_pos_transfer_status = res["custom_pos_transfer_status"];
+
+					// if the TranType gets changed in the checkCallbackStatus response from ICICI, it gets recorded here
+					if ("TranType" in res) {
+						if (res["TranType"] == "UPI") invoice_doc.value.custom_upi_transaction_id = res["TranId"];
+						else if (res["TranType"] == "Sale") invoice_doc.value.custom_card_transaction_id = res["TranId"];
+						else if (tran_type == 16) invoice_doc.value.custom_upi_transaction_id = res["TranId"];
+						else if (tran_type == 1) invoice_doc.value.custom_card_transaction_id = res["TranId"];
+					}
+					else {
+						if (tran_type == 16) invoice_doc.value.custom_upi_transaction_id = res["TranId"];
+						else if (tran_type == 1) invoice_doc.value.custom_card_transaction_id = res["TranId"];
+					}
+
+					invoice_doc.value.remarks = JSON.stringify(res); // record the json in the remarks string
+					payment_received = true;
 					break;
 				}
 			}
@@ -1637,16 +1716,28 @@ const submit = async (_event, payment_received = false, print = false) => {
 	else {
 		for (const payment of invoice_doc.value.payments) {
 			console.log("Mode of Payment: ", payment.mode_of_payment);
+			// console.log("payments.vue fsBalanceAvailable: ", fsBalanceAvailable);
 
 			if (payment.amount !== 0) { // if < 0 then it is a return transaction
+
 				payment.amount = flt(payment.amount, currency_precision.value);
 				console.log("payment.amount", payment.amount);
 
 				if (payment.mode_of_payment === "FS") {
-					fs_amount.value = payment.amount;
-					const res = await make_fs_payment();
-					console.log("fs_payment_response: ", res);
-					if (res.fs_payment_response == true) payment_received = true;
+					//const res = await make_fs_payment(payment.amount, fsBalanceAvailable.value);
+					const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
+					console.log("fs_payment_response res: ", res);
+					// console.log("fs_payment_response res.remarks: ", res.remarks);
+					if (res) {
+						console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
+
+						invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
+						if (res.custom_fs_transfer_status == "OK") {
+							invoice_doc.value.remarks = res.remarks;
+							payment_received = true;
+						}
+						if (res.is_credit_sale) is_credit_sale.value = true;
+					}
 					break;
 				}
 
@@ -1655,6 +1746,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 					console.log("aurocard_payment_response: ", aurocard_payment_response);
 					break;
 				}
+
 				else if (payment.mode_of_payment === "UPI") {
 					const upi_payment_response = await make_upi_payment();
 					console.log("upi_payment_response: ", upi_payment_response);
@@ -1669,6 +1761,51 @@ const submit = async (_event, payment_received = false, print = false) => {
 		paymentReceived: payment_received,
 	});
 };
+
+const getUpiConfirmation = async ( payment_received = false ) => {
+	const res = await get_upi_confirmation();
+	console.log("upi_payment_response: ", res);
+    if (res) {
+		invoice_doc.value.custom_pos_transfer_status = res["custom_pos_transfer_status"];
+
+		if ("TranType" in res) {
+			if (res["TranType"] == "UPI") invoice_doc.value.custom_upi_transaction_id = res["TranId"];
+			else if (res["TranType"] == "Sale") invoice_doc.value.custom_card_transaction_id = res["TranId"];
+			else if (res["tran_type"] == 16) invoice_doc.value.custom_upi_transaction_id = res["TranId"]; // in case no match above
+			else if (res["tran_type"] == 1) invoice_doc.value.custom_card_transaction_id = res["TranId"];
+		}
+		else {
+			if (res["tran_type"] == 16) invoice_doc.value.custom_upi_transaction_id = res["TranId"];
+			else if (res["tran_type"] == 1) invoice_doc.value.custom_card_transaction_id = res["TranId"];
+		}
+
+		invoice_doc.value.remarks = JSON.stringify(res); // record the json in the remarks string
+
+		toastStore.show({
+			title: __(`POS Transaction ResponseCode: {0}, ResponseDesc: {1}`, [
+				res["ResponseCode"],
+				res["ResponseDesc"]
+			]),
+			color: "success",
+		});
+		payment_received = true;
+    }
+
+	// if ICICI POS payment successfull, then submitInvoiceWrapper with paymentReceived, here:-
+	await submitInvoiceWrapper(res["print"], undefined, {
+		paymentReceived: payment_received,
+	});
+};
+
+const bypassDynamicQr = async () => {
+	invoice_doc.value.remarks = "Bypassed Dynamic QR";
+	const print = await bypass_dynamic_qr();
+
+	// if ICICI POS payment successfull, then submitInvoiceWrapper with paymentReceived, here:-
+	await submitInvoiceWrapper(print, undefined, {
+		paymentReceived: true,
+	});
+}
 
 const submitInvoiceWrapper = async (print, callbackOverrides = {}, options = {}) => {
 	if (submissionInFlight.value) {
@@ -2055,7 +2192,9 @@ onMounted(() => {
 			is_credit_sale.value = false;
 			is_write_off_change.value = false;
 
-			fsBalanceAvailable = data.fs_balance_available;
+			// Karan: receiving FS Balance from Invoice.vue component
+			if (data.fsBalanceAvailable)
+				fsBalanceAvailable = data.fs_balance_available;
 			const initializedPayment = ensurePaymentLinesInitialized(data.doc);
 
 			if (data.doc.is_return) {

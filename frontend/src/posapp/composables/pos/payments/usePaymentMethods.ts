@@ -40,6 +40,12 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 
 	const mpesa_modes = ref<string[]>([]);
 	const phone_dialog = ref(false);
+	// Karan: Integrating ICICI POS
+	const icici_dialog = ref(false);
+	const upi_online_color = ref("grey");
+	let erp_tran_id: String;
+	let tranType: Number;
+	let print: Boolean;
 
 	const flt = (v: any) =>
 		formatFloat ? formatFloat(v) : parseFloat(String(v)) || 0;
@@ -465,9 +471,144 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 		})
     };
 
+	// Karan
+    const make_icici_upi_payment = (
+		tran_type: number,
+		upi_amount: number,
+		print_upi: boolean,
+	) => {
+		return new Promise(async (resolve, reject) => {
+			const doc = unref(invoiceDoc);
+			icici_dialog.value = true;
+			print = print_upi;
+
+			const r = await frappe.call({
+				method: "payments.payment_gateways.doctype.upi_settings.upi_settings.push_txn",
+				args: {
+					invoice_doc: doc,
+					tran_type: tran_type, //16 - UPI, 1 - Card
+					amount: upi_amount,
+				},
+				async: false,
+			});
+			if (r.message) {
+				console.log('r.message: ', r.message);
+
+				if (r.message["ResponseCode"] == "00" && r.message['ir_status'] == "Completed") {
+					icici_dialog.value = false;
+					resolve(r.message);
+				}
+				else if (r.message["ResponseCode"] == "00" || r.message["ResponseDesc"] == "Success") {
+					upi_online_color.value = "success";
+					erp_tran_id = r.message["erp_tran_id"];
+
+					if ("TranType" in r.message) {
+						if (r.message["TranType"] == "UPI") tranType = 16;
+						else if (r.message["TranType"] == "Sale") tranType = 1;
+					}
+					else tranType = tran_type;
+					//const txn_status = await vm.get_upi_confirmation(r.message["erp_tran_id"], tran_type);
+					// check txn_status for Success or Fail
+					//resolve(txn_status);
+					console.log("tranType: ", tranType);
+				}
+				else {
+					stores.toastStore.show({
+						title: __(`Please check the Network/Service/POS availability. ResponseCode: {0}, ResponseDesc: {1}`, [
+							r.message["ResponseCode"],
+							r.message["ResponseDesc"]
+						]),
+						color: "error",
+					});
+					reject("Payment Unsuccessfull");
+				}
+			}
+		})
+    };
+
+	// Karan
+    const get_upi_confirmation = async () => {
+		const doc = unref(invoiceDoc);
+
+		const r = await frappe.call({
+			method: "payments.payment_gateways.doctype.upi_settings.upi_settings.get_upi_confirmation",
+			args: {
+				bill_no: doc.name,
+				tran_type: tranType, //16 - UPI, 1 - Card
+				erp_tran_id: erp_tran_id
+			},
+			async: false,
+		});
+		let res = {};
+
+		if (r.message) {
+			console.log("r.message: ", r.message);
+			if (r.message['ResponseCode'] == '00' || r.message["ResponseDesc"] ==  "SUCCESS" || r.message["ResponseDesc"] == "Approved or completed successfully") {
+				icici_dialog.value = false;
+				res = r.message;
+				// returning print and tranType values passed via make_icici_upi_payment() above
+				res["print"] = print;
+				res["tran_type"] = tranType;
+				return(res);
+			}
+			else {
+				stores.toastStore.show({
+					title: __(`Please wait for Customer Device confirmation, or check the Network/Service/POS availability.\n ResponseCode: {0}, ResponseDesc: {1}`, [
+						r.message["ResponseCode"],
+						r.message["ResponseDesc"]
+					]),
+					color: "warning",
+				});
+				console.log(r.message);
+			}
+		}
+    };
+
+    const cancel_upi_payment = async () => {
+      const doc = unref(invoiceDoc);
+
+		if (erp_tran_id) {
+			const r = await frappe.call({
+				method: 'payments.payment_gateways.doctype.upi_settings.upi_settings.cancel_txn',
+				args: {
+					bill_no: doc.name,
+					tran_type: tranType, //16 - UPI, 1 - Card
+					erp_tran_id: erp_tran_id
+				},
+				async: false,
+			});
+
+			if (r.message) {
+				stores.toastStore.show({
+					title: __(`POS Transaction cancelled. ResponseCode: {0}, ResponseDesc: {1}`, [
+						r.message["RspCode"],
+						r.message["RspDesc"]
+					]),
+					color: "warning",
+				});
+				console.log(r.message);
+				icici_dialog.value = false;
+			}
+			else icici_dialog.value = false;
+		}
+		else icici_dialog.value = false;
+    };
+
+	// Karan
+    const bypass_dynamic_qr = () => {
+      	icici_dialog.value = false;
+		stores.toastStore.show({
+			title: __(`Bypassed Dynamic QR for POS Transaction`),
+			color: "info",
+		});
+		return print;
+    };
+
 	return {
 		mpesa_modes,
 		phone_dialog,
+		icici_dialog, // Karan
+		upi_online_color, // Karan
 		get_mpesa_modes,
 		is_mpesa_c2b_payment,
 		mpesa_c2b_dialog,
@@ -481,5 +622,9 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 		isCashLikePayment,
 		reset_cash_payments,
 		make_fs_payment, // Karan
+		make_icici_upi_payment, // Karan
+		get_upi_confirmation, // Karan
+		cancel_upi_payment, // Karan
+		bypass_dynamic_qr,  // Karan
 	};
 }
