@@ -276,7 +276,6 @@ const fsOnline = ref(false);
 const iciciOnline = ref(false);
 
 // Sync data
-const syncTotals = ref({ pending: 0, synced: 0, drafted: 0 });
 const manualOffline = ref(false);
 
 const queueMetrics = useQueueMetrics({

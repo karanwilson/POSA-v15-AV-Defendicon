@@ -55,6 +55,7 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 	let erp_tran_id: String;
 	let tranType: Number;
 	let print: Boolean;
+	let chargeableMOPupdate = false; // for updating charges in Back/Front-end
 
 	const flt = (v: any) =>
 		formatFloat ? formatFloat(v) : parseFloat(String(v)) || 0;
@@ -258,9 +259,73 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 		}
 	};
 
-	// Set full amount for a payment mode
-	const set_full_amount = (payment: any, isReturn = false) => {
+	// Karan: adding functionality for Card charges
+	const check_apply_chargeable_mop = async (
+		mop_preferred,
+	) => {
+		chargeableMOPupdate = false; // reset to false
 		const doc = unref(invoiceDoc);
+
+		const r = await frappe.call({
+			method: "posawesome.posawesome.api.payment_processing.utils.get_trans_fee_details",
+			args: {
+				company: doc.company,
+				mop: mop_preferred,
+			},
+			async: true,
+		});
+
+		const found = doc.taxes.find((row) => row.account_head === r.message["account_head"]);
+		// console.log("check_apply_chargeable_mop found: ", found);
+		// console.log("check_apply_chargeable_mop found: ", r.message);
+
+		if (found && r.message["custom_transaction_fee_percentage"] == 0) {
+			const index = doc.taxes.indexOf(found.name);
+			//console.log("check_apply_chargeable_mop index: ", index);
+			doc.taxes.splice(index, 1);
+			chargeableMOPupdate = true;
+		}
+
+		else if (!found && r.message["custom_transaction_fee_percentage"] > 0) {
+			const transaction_fee = flt(doc.grand_total * r.message["custom_transaction_fee_percentage"]/100);
+
+			doc.taxes.push({
+				account_head: r.message["account_head"],
+				charge_type: "Actual",
+				//charge_type: "On Net Total",
+				description: __("{0} Charges", [mop_preferred]),
+				//rate: r.message["custom_transaction_fee_percentage"],
+				tax_amount: transaction_fee,
+				cost_center: r.message["cost_center"],
+				included_in_print_rate: 0,
+			});
+			console.log("usePaymentMethods.ts doc: ", doc);
+			chargeableMOPupdate = true;
+		}
+
+		// Karan: Updating the backend/frontend Invoice when Chargeable MOP is set
+		if (chargeableMOPupdate) {
+
+			const updateResponse = await frappe.call({
+				method: "posawesome.posawesome.api.invoices.update_invoice", // backend update
+				args: { data: doc },
+			});
+			//console.log("Payments.vue syncPreferredPaymentToCurrentTotal updateResponse: ", updateResponse);
+
+			if (updateResponse?.message) {
+				updateResponse.message.payments = doc.payments; // updating calculated payments data
+				Object.assign(doc, updateResponse.message); // frontend update
+			}
+		}
+	};
+
+	// Set full amount for a payment mode
+	const set_full_amount = async (payment: any, isReturn = false) => {
+		const doc = unref(invoiceDoc);
+
+		// Karan: adding functionality for Card charges
+		const check_tran_fee = await check_apply_chargeable_mop(payment.mode_of_payment);
+
 		const invoiceAmount = getInvoiceSettlementAmount();
 		// Reset other payments
 		doc.payments.forEach((p: any) => {
@@ -672,10 +737,12 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 		getVisibleDenominations,
 		isCashLikePayment,
 		reset_cash_payments,
-		make_fs_payment, // Karan
-		make_icici_upi_payment, // Karan
-		get_upi_confirmation, // Karan
-		cancel_upi_payment, // Karan
-		bypass_dynamic_qr,  // Karan
+		// Karan
+		make_fs_payment,
+		make_icici_upi_payment,
+		get_upi_confirmation,
+		cancel_upi_payment,
+		bypass_dynamic_qr,
+		check_apply_chargeable_mop, 
 	};
 }

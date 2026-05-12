@@ -775,6 +775,7 @@ const {
 	get_upi_confirmation,
 	cancel_upi_payment,
 	bypass_dynamic_qr,
+	check_apply_chargeable_mop,
 } = usePaymentMethods({
 	invoiceDoc: computed(() => invoiceStore.invoiceDoc),
 	posProfile: pos_profile,
@@ -1351,14 +1352,11 @@ const syncPreferredPaymentToCurrentTotal = (doc = invoice_doc.value) => {
 	const mop_preferred = r.message["mode_of_payment"];
 	console.log("Payments.vue syncPreferredPaymentToCurrentTotal mop_preferred: ", mop_preferred);
 
-	// Karan: adding functionality for Card charges
-	const check_tran_fee = await check_chargeable_mop(doc, mop_preferred);
-
 	const preferredPayment = resolvePreferredPaymentLine(doc, isCashLikePayment, mop_preferred);
 	if (!preferredPayment) {
 		return null;
 	}
-	console.log("Payments.vue preferredPayment: ", preferredPayment);
+	console.log("Payments.vue syncPreferredPaymentToCurrentTotal preferredPayment: ", preferredPayment);
 
 	const otherMeaningfulPayments = payments.filter((payment) => {
 		if (payment === preferredPayment) {
@@ -1480,6 +1478,9 @@ const ensurePaymentLinesInitialized = async (doc = invoice_doc.value) => {
 	const mop_preferred = r.message["mode_of_payment"];
 	console.log("Payments.vue ensurePaymentLinesInitialized mop_preferred: ", mop_preferred);
 
+	// Karan: adding functionality for Card charges
+	const check_tran_fee = await check_apply_chargeable_mop(mop_preferred);
+
 	const initializedPayment = initializePaymentLinesForDialog(
 		doc,
 		currency_precision.value,
@@ -1493,11 +1494,7 @@ const ensurePaymentLinesInitialized = async (doc = invoice_doc.value) => {
 	}
 
 	const preferredPayment = await syncPreferredPaymentToCurrentTotal(doc);
-	// Karan: Updating the backend Invoice with Chargeable MOP set
-	const updateResponse = await frappe.call({
-		method: "posawesome.posawesome.api.invoices.update_invoice",
-		args: { data: doc },
-	});
+	console.log("Payments.vue ensurePaymentLinesInitialized preferredPayment: ", preferredPayment);
 
 	return initializedPayment;
 };
