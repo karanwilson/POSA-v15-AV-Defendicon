@@ -584,6 +584,7 @@ const {
 	get_upi_confirmation,
 	cancel_upi_payment,
 	bypass_dynamic_qr,
+	check_apply_chargeable_mop,
 } = usePaymentMethods({
 	invoiceDoc: computed(() => invoiceStore.invoiceDoc),
 	posProfile: pos_profile,
@@ -1090,40 +1091,6 @@ const buildProfilePaymentLines = () => {
 		}));
 };
 
-// Karan: adding functionality for Card charges
-const check_chargeable_mop = async (doc, mop_preferred) => {
-	const r = await frappe.call({
-		method: "posawesome.posawesome.api.payment_processing.utils.get_trans_fee_details",
-		args: {
-			company: doc.company,
-			mop: mop_preferred,
-		},
-		async: true,
-	});
-
-	const found = doc.taxes.find((row) => row.account_head === r.message["account_head"]);
-
-	// Karan: currently ERPNext Validation is failing due to general checks of included_in_print_rate
-	// however, this row specifically has included_in_print_rate unchecked '0': hoping the next version will pass this in Validation
-	// Else: create custom bypass for this row, with included_in_print_rate as '0'
-	if (!found && r.message["custom_transaction_fee_percentage"] > 0) {
-		const transaction_fee = flt(doc.grand_total * r.message["custom_transaction_fee_percentage"]/100, currency_precision.value);
-
-		doc.taxes.push({
-			account_head: r.message["account_head"],
-			charge_type: "Actual",
-			//charge_type: "On Net Total",
-			description: __("{0} Charges", [mop_preferred]),
-			//rate: r.message["custom_transaction_fee_percentage"],
-			tax_amount: transaction_fee,
-			cost_center: r.message["cost_center"],
-			included_in_print_rate: 0,
-		});
-		console.log("Payments.vue doc: ", doc);
-	}
-};
-
-
 const syncPreferredPaymentToCurrentTotal = async (doc = invoice_doc.value) => {
 	if (!doc || !Array.isArray(doc.payments) || !doc.payments.length || is_credit_sale.value) {
 		return null;
@@ -1139,14 +1106,11 @@ const syncPreferredPaymentToCurrentTotal = async (doc = invoice_doc.value) => {
 	const mop_preferred = r.message["mode_of_payment"];
 	console.log("Payments.vue syncPreferredPaymentToCurrentTotal mop_preferred: ", mop_preferred);
 
-	// Karan: adding functionality for Card charges
-	const check_tran_fee = await check_chargeable_mop(doc, mop_preferred);
-
 	const preferredPayment = resolvePreferredPaymentLine(doc, isCashLikePayment, mop_preferred);
 	if (!preferredPayment) {
 		return null;
 	}
-	console.log("Payments.vue preferredPayment: ", preferredPayment);
+	console.log("Payments.vue syncPreferredPaymentToCurrentTotal preferredPayment: ", preferredPayment);
 
 	const otherMeaningfulPayments = payments.filter((payment) => {
 		if (payment === preferredPayment) {
@@ -1247,6 +1211,9 @@ const ensurePaymentLinesInitialized = async (doc = invoice_doc.value) => {
 	const mop_preferred = r.message["mode_of_payment"];
 	console.log("Payments.vue ensurePaymentLinesInitialized mop_preferred: ", mop_preferred);
 
+	// Karan: adding functionality for Card charges
+	const check_tran_fee = await check_apply_chargeable_mop(mop_preferred);
+
 	const initializedPayment = initializePaymentLinesForDialog(
 		doc,
 		currency_precision.value,
@@ -1260,11 +1227,7 @@ const ensurePaymentLinesInitialized = async (doc = invoice_doc.value) => {
 	}
 
 	const preferredPayment = await syncPreferredPaymentToCurrentTotal(doc);
-	// Karan: Updating the backend Invoice with Chargeable MOP set
-	const updateResponse = await frappe.call({
-		method: "posawesome.posawesome.api.invoices.update_invoice",
-		args: { data: doc },
-	});
+	console.log("Payments.vue ensurePaymentLinesInitialized preferredPayment: ", preferredPayment);
 
 	return initializedPayment;
 };

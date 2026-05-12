@@ -338,7 +338,7 @@ def apply_tax_inclusive(doc):
             if tax.included_in_print_rate:
                 tax.included_in_print_rate = 0
                 has_changes = True
-                continue # Karan: correcting the tab spacing to make the if/elif statements below reachable
+            continue # Karan: correcting the tab spacing to make the if/elif statements below reachable
         if tax_inclusive and not tax.included_in_print_rate:
             tax.included_in_print_rate = 1
             has_changes = True
