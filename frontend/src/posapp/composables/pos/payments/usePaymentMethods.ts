@@ -57,6 +57,13 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 	let print: Boolean;
 	let chargeableMOPupdate = false; // for updating charges in Back/Front-end
 
+	const upi = ref(false);
+	const aurocard = ref(false);
+
+	const upi_trans_id = ref("");
+	const aurocard_pos_id = ref("");
+	const aurocard_trans_id = ref("");
+
 	const flt = (v: any) =>
 		formatFloat ? formatFloat(v) : parseFloat(String(v)) || 0;
 	const syncPaymentCurrency = (payment: any, companyAmount?: number) => {
@@ -323,6 +330,19 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 	const set_full_amount = async (payment: any, isReturn = false) => {
 		const doc = unref(invoiceDoc);
 
+		if (payment.mode_of_payment == "UPI") upi.value = true;
+		else {
+			upi.value = false;
+			upi_trans_id.value = "";
+		}
+
+		if (payment.mode_of_payment == "Aurocard") aurocard.value = true;
+		else {
+			aurocard.value = false;
+			aurocard_pos_id.value = "";
+			aurocard_trans_id.value = "";
+		}
+
 		// Karan: adding functionality for Card charges
 		const check_tran_fee = await check_apply_chargeable_mop(payment.mode_of_payment);
 
@@ -587,6 +607,34 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
     };
 
 	// Karan
+    const make_aurocard_payment = () => {
+      return new Promise((resolve, reject) => {
+        if (!(aurocard_pos_id.value && aurocard_trans_id.value)) {
+			stores.toastStore.show({
+				title: __("Please enter both 'Aurocard POS ID' and 'Aurocard Transaction ID"),
+				color: "warning",
+			});
+          reject("Please enter both 'Aurocard POS ID' and 'Aurocard Transaction ID");
+        }
+        else resolve("OK");
+      })
+    };
+
+	// Karan
+    const make_upi_payment = () => {
+      return new Promise((resolve, reject) => {
+        if (!upi_trans_id.value) {
+			stores.toastStore.show({
+				title: __("Please enter the 'UPI Transaction ID' OR enter remarks (eg.: Not Shared)"),
+				color: "warning",
+			});
+          reject("Please enter the 'UPI Transaction ID' OR enter remarks (eg.: Not Shared)");
+        }
+        else resolve("OK");
+      })
+    };
+
+	// Karan
     const make_icici_upi_payment = (
 		tran_type: number,
 		upi_amount: number,
@@ -722,8 +770,6 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 	return {
 		mpesa_modes,
 		phone_dialog,
-		icici_dialog, // Karan
-		upi_online_color, // Karan
 		get_mpesa_modes,
 		is_mpesa_c2b_payment,
 		mpesa_c2b_dialog,
@@ -738,7 +784,16 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 		isCashLikePayment,
 		reset_cash_payments,
 		// Karan
+		aurocard,
+		aurocard_pos_id,
+		aurocard_trans_id,
+		icici_dialog,
+		upi_online_color,
+		upi,
+		upi_trans_id,
 		make_fs_payment,
+		make_aurocard_payment,
+		make_upi_payment,
 		make_icici_upi_payment,
 		get_upi_confirmation,
 		cancel_upi_payment,
