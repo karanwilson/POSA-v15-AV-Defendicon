@@ -1808,7 +1808,9 @@ const onEnter = (e) => {
 			if (item) itemSelection.add_item(item);
 		}
 	}
-};
+	uiStore.triggerItemSearchFocus();
+}
+//const onEnter = (e) => itemsSelectorSearch.onEnter(e);
 const handleSearchKeydown = (e) => itemsSelectorFocus.handleSearchKeydown(e);
 const handleSearchPaste = (e) => itemsSelectorFocus.handleSearchPaste(e);
 const searchItems = (term) => itemsIntegration.searchItems(term);

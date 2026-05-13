@@ -280,8 +280,8 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 		// console.log("check_apply_chargeable_mop found: ", r.message);
 
 		if (found && r.message["custom_transaction_fee_percentage"] == 0) {
-			const index = doc.taxes.indexOf(found.name);
-			//console.log("check_apply_chargeable_mop index: ", index);
+			const index = doc.taxes.findIndex((tax) => tax.name == found.name);
+			console.log("check_apply_chargeable_mop index: ", index);
 			doc.taxes.splice(index, 1);
 			chargeableMOPupdate = true;
 		}
