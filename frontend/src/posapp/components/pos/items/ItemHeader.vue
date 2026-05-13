@@ -10,7 +10,6 @@
 					<v-text-field
 						density="compact"
 						clearable
-						autofocus
 						variant="solo"
 						color="primary"
 						class="pos-themed-input"
@@ -33,6 +32,7 @@
 						@focus="$emit('focus')"
 						ref="debounce_search"
 					>
+					<!-- autofocus -->
 						<template v-slot:append-inner>
 							<v-btn
 								v-if="posProfile.posa_enable_camera_scanning"

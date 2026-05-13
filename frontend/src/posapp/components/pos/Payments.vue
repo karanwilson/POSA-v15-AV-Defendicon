@@ -1612,7 +1612,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 				console.log("payment.amount", payment.amount);
 
 				if (payment.mode_of_payment === "FS") {
-					//const res = await make_fs_payment(payment.amount, fsBalanceAvailable.value);
+					//console.log("Payments.vue fsBalanceAvailable: ", fsBalanceAvailable);
 					const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
 					console.log("fs_payment_response res: ", res);
 					// console.log("fs_payment_response res.remarks: ", res.remarks);
@@ -2156,7 +2156,7 @@ onMounted(() => {
 			is_write_off_change.value = false;
 
 			// Karan: receiving FS Balance from Invoice.vue component
-			if (data.fsBalanceAvailable)
+			if (data.fs_balance_available)
 				fsBalanceAvailable = data.fs_balance_available;
 			const initializedPayment = ensurePaymentLinesInitialized(data.doc);
 

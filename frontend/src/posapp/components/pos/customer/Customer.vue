@@ -7,6 +7,7 @@
 				class="customer-autocomplete sleek-field pos-themed-input"
 				density="compact"
 				clearable
+				autofocus
 				variant="solo"
 				color="primary"
 				:label="customerFieldLabel"
@@ -16,7 +17,7 @@
 				:items="filteredCustomers"
 				item-title="customer_name"
 				item-value="name"
-				:item-text="itemText"
+				:optionLabel="getCustomerInfo"
 				:no-data-text="customerNoDataText"
 				hide-details
 				:customFilter="() => true"
@@ -322,9 +323,11 @@ export default {
 		};
 
 		// to display the Customer's FS account number and community
-		const itemText = computed((item) => {
-		return `${item.raw.customer_name}   ${item.raw.custom_fs_account_number}   ${item.raw.address_line1}`;
-		});
+		const getCustomerInfo = (item) => {
+			console.log("Customer item: ", item);
+			console.log("Customer item.raw: ", item.raw);
+			return `${item.raw.customer_name}   ${item.raw.custom_fs_account_number}   ${item.raw.address_line1}`;
+		};
 
 		watch(
 			selectedCustomer,
@@ -466,6 +469,8 @@ export default {
 			if (event?.target?.blur) {
 				event.target.blur();
 			}
+
+			uiStore.triggerItemSearchFocus();
 		};
 
 		const new_customer = () => {

@@ -1086,6 +1086,7 @@ const onEnter = (e) => { // Karan: customised for Item_code based matches
 			if (item) itemSelection.add_item(item);
 		}
 	}
+	uiStore.triggerItemSearchFocus();
 }
 //const onEnter = (e) => itemsSelectorSearch.onEnter(e);
 const handleSearchKeydown = (e) => itemsSelectorFocus.handleSearchKeydown(e);
