@@ -124,6 +124,11 @@
 							:invoice-doc="invoice_doc"
 							:pos-profile="pos_profile"
 							:invoice-type="invoiceType"
+							:aurocard="aurocard"
+							:aurocard-pos-id="aurocard_pos_id"
+							:aurocard-trans-id="aurocard_trans_id"
+							:upi="upi"
+							:upi-trans-id="upi_trans_id"
 							:return-validity-enabled="returnValidityEnabled"
 							:return-validity-min-date="returnValidityMinDate"
 							:addresses="addresses"
@@ -143,6 +148,9 @@
 								}
 							"
 							@new-address="new_address"
+							@update:aurocard-pos-id="aurocard_pos_id = $event"
+							@update:aurocard-trans-id="aurocard_trans_id = $event"
+							@update:upi-trans-id="upi_trans_id = $event"
 						/>
 						<PaymentPurchaseOrder
 							:invoice-doc="invoice_doc"
@@ -570,6 +578,11 @@ const {
 	phone_dialog,
 	icici_dialog,
 	upi_online_color,
+	aurocard,
+	upi,
+	upi_trans_id,
+	aurocard_pos_id,
+	aurocard_trans_id,
 	get_mpesa_modes,
 	is_mpesa_c2b_payment,
 	mpesa_c2b_dialog,
@@ -580,6 +593,8 @@ const {
 	getVisibleDenominations,
 	isCashLikePayment,
 	make_fs_payment,
+	make_aurocard_payment,
+	make_upi_payment,
 	make_icici_upi_payment,
 	get_upi_confirmation,
 	cancel_upi_payment,
@@ -1106,6 +1121,19 @@ const syncPreferredPaymentToCurrentTotal = async (doc = invoice_doc.value) => {
 	const mop_preferred = r.message["mode_of_payment"];
 	console.log("Payments.vue syncPreferredPaymentToCurrentTotal mop_preferred: ", mop_preferred);
 
+	if (mop_preferred == "UPI") upi.value = true;
+	else {
+		upi.value = false;
+		upi_trans_id.value = "";
+	}
+
+	if (mop_preferred == "Aurocard") aurocard.value = true;
+	else {
+		aurocard.value = false;
+		aurocard_pos_id.value = "";
+		aurocard_trans_id.value = "";
+	}
+
 	const preferredPayment = resolvePreferredPaymentLine(doc, isCashLikePayment, mop_preferred);
 	if (!preferredPayment) {
 		return null;
@@ -1630,8 +1658,13 @@ const submit = async (_event, payment_received = false, print = false) => {
 				}
 
 				else if (payment.mode_of_payment === "Aurocard") {
-					const aurocard_payment_response = await make_aurocard_payment();
+					const aurocard_payment_response = await make_aurocard_payment(aurocard_pos_id.value, aurocard_trans_id.value);
 					console.log("aurocard_payment_response: ", aurocard_payment_response);
+
+					if (invoice_doc.value.remarks)
+						invoice_doc.value.remarks += "\n" + "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
+					else invoice_doc.value.remarks = "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
+					payment_received = true;
 					break;
 				}
 
@@ -1705,14 +1738,24 @@ const submit = async (_event, payment_received = false, print = false) => {
 				}
 
 				else if (payment.mode_of_payment === "Aurocard") {
-					const aurocard_payment_response = await make_aurocard_payment();
+					const aurocard_payment_response = await make_aurocard_payment(aurocard_pos_id.value, aurocard_trans_id.value);
 					console.log("aurocard_payment_response: ", aurocard_payment_response);
+
+					if (invoice_doc.value.remarks)
+						invoice_doc.value.remarks += "\n" + "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
+					else invoice_doc.value.remarks = "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
+					payment_received = true;
 					break;
 				}
 
 				else if (payment.mode_of_payment === "UPI") {
-					const upi_payment_response = await make_upi_payment();
+					const upi_payment_response = await make_upi_payment(upi_trans_id.value);
 					console.log("upi_payment_response: ", upi_payment_response);
+
+					if (invoice_doc.value.remarks)
+						invoice_doc.value.remarks += "\n" + "UPI Transaction ID: " + upi_trans_id.value;
+					else invoice_doc.value.remarks = "UPI Transaction ID: " + upi_trans_id.value;
+					payment_received = true;
 					break;
 				}
 			}

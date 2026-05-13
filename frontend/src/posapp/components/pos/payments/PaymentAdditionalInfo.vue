@@ -2,6 +2,43 @@
 	<div v-if="invoiceDoc">
 		<!-- Additional Invoice Information (Delivery, Address, Notes) -->
 		<v-row class="pa-1">
+			<!-- Aurocard/UPI ID (if applicable) -->
+			<v-col cols="6" v-show="aurocard">
+				<v-text-field
+				dense
+				outlined
+				color="primary"
+				:label="frappe._('Aurocard POS ID')"
+				background-color="white"
+				hide-details
+				:model-value="aurocardPosId"
+				@update:model-value="$emit('update:aurocardPosId', $event)"
+				></v-text-field>
+			</v-col>
+			<v-col cols="6" v-show="aurocard">
+				<v-text-field
+				dense
+				outlined
+				color="primary"
+				:label="frappe._('Aurocard Transaction ID')"
+				background-color="white"
+				hide-details
+				:model-value="aurocardTransId"
+				@update:model-value="$emit('update:aurocardTransId', $event)"
+				></v-text-field>
+			</v-col>
+			<v-col cols="6" v-show="upi">
+				<v-text-field
+				dense
+				outlined
+				color="primary"
+				:label="frappe._('UPI Transaction ID')"
+				background-color="white"
+				hide-details
+				:model-value="upiTransId"
+				@update:model-value="$emit('update:upiTransId', $event)"
+				></v-text-field>
+			</v-col>
 			<!-- Delivery Date and Address (if applicable) -->
 			<v-col cols="6" v-if="posProfile.posa_allow_sales_order && invoiceType === 'Order'">
 				<VueDatePicker
@@ -130,6 +167,26 @@ defineProps({
 		type: String,
 		default: "Invoice",
 	},
+	aurocard: {
+		type: Boolean,
+		default: "false",
+	},
+	upi: {
+		type: Boolean,
+		default: "false",
+	},
+	aurocardPosId: {
+		type: String,
+		default: "false",
+	},
+	aurocardTransId: {
+		type: String,
+		default: "false",
+	},
+	upiTransId: {
+		type: String,
+		default: "false",
+	},
 	returnValidityEnabled: {
 		type: Boolean,
 		default: false,
@@ -156,7 +213,10 @@ defineProps({
 	},
 });
 
-defineEmits(["update:newDeliveryDate", "update:returnValidUptoDate", "new-address"]);
+defineEmits([
+	"update:newDeliveryDate", "update:returnValidUptoDate", "new-address",
+	"update:aurocardPosId", "update:aurocardTransId", "update:upiTransId",
+]);
 
 const $frappe = inject("frappe", window.frappe);
 const $__ = inject("__", window.__);
