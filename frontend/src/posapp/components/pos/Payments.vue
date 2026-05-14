@@ -1649,7 +1649,9 @@ const submit = async (_event, payment_received = false, print = false) => {
 
 						invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
 						if (res.custom_fs_transfer_status == "OK") {
-							invoice_doc.value.remarks = res.remarks;
+							if (invoice_doc.value.remarks)
+								invoice_doc.value.remarks += "\n-------------\n" + res.remarks;
+							else invoice_doc.value.remarks = res.remarks;
 							payment_received = true;
 						}
 						if (res.is_credit_sale) is_credit_sale.value = true;
@@ -1662,7 +1664,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 					console.log("aurocard_payment_response: ", aurocard_payment_response);
 
 					if (invoice_doc.value.remarks)
-						invoice_doc.value.remarks += "\n" + "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
+						invoice_doc.value.remarks += "\n-------------\n" + "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
 					else invoice_doc.value.remarks = "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
 					payment_received = true;
 					break;
@@ -1701,7 +1703,10 @@ const submit = async (_event, payment_received = false, print = false) => {
 						else if (tran_type == 1) invoice_doc.value.custom_card_transaction_id = res["TranId"];
 					}
 
-					invoice_doc.value.remarks = JSON.stringify(res); // record the json in the remarks string
+					if (invoice_doc.value.remarks)
+						invoice_doc.value.remarks += "\n-------------\n" + JSON.stringify(res); // record the json in the remarks string
+					else
+						invoice_doc.value.remarks = JSON.stringify(res); // record the json in the remarks string
 					payment_received = true;
 					break;
 				}
@@ -1729,7 +1734,9 @@ const submit = async (_event, payment_received = false, print = false) => {
 
 						invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
 						if (res.custom_fs_transfer_status == "OK") {
-							invoice_doc.value.remarks = res.remarks;
+							if (invoice_doc.value.remarks)
+								invoice_doc.value.remarks += "\n-------------\n" + res.remarks;
+							else invoice_doc.value.remarks = res.remarks;
 							payment_received = true;
 						}
 						if (res.is_credit_sale) is_credit_sale.value = true;
@@ -1742,7 +1749,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 					console.log("aurocard_payment_response: ", aurocard_payment_response);
 
 					if (invoice_doc.value.remarks)
-						invoice_doc.value.remarks += "\n" + "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
+						invoice_doc.value.remarks += "\n-------------\n" + "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
 					else invoice_doc.value.remarks = "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
 					payment_received = true;
 					break;
@@ -1753,7 +1760,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 					console.log("upi_payment_response: ", upi_payment_response);
 
 					if (invoice_doc.value.remarks)
-						invoice_doc.value.remarks += "\n" + "UPI Transaction ID: " + upi_trans_id.value;
+						invoice_doc.value.remarks += "\n-------------\n" + "UPI Transaction ID: " + upi_trans_id.value;
 					else invoice_doc.value.remarks = "UPI Transaction ID: " + upi_trans_id.value;
 					payment_received = true;
 					break;

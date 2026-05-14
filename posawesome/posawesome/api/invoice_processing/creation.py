@@ -1097,7 +1097,10 @@ def submit_invoice(invoice, data, submit_in_background=False):
         cash_account = {"account": frappe.get_value("Company", invoice_doc.company, "default_cash_account")}
 
     # Karan: appending to existing transaction comments
-    invoice_doc.remarks += "\n--------------------\n" + _build_invoice_remarks(invoice_doc)
+    if invoice_doc.remarks is None:
+        invoice_doc.remarks = _build_invoice_remarks(invoice_doc)
+    else:
+        invoice_doc.remarks += "\n--------------------\n" + _build_invoice_remarks(invoice_doc)
 
     # calculating cash
     total_cash = 0
