@@ -394,6 +394,12 @@ fixtures = [
                     "POS Profile-posa_enable_awesome_dashboard",
                     "POS Profile-posa_allow_company_dashboard_scope",
                     "POS Profile-posa_low_stock_alert_threshold",
+
+                    "POS Profile-posa_enable_fs_payments", # to enable FS payments
+                    "POS Profile-posa_enable_icici_pos_payments", # to enable ICICI POS payments
+                    "POS Profile-posa_input_weighing_scale" # to enable reading from weighing scale
+                    "POS Profile-posa_display_invoice_mgmt" # to enable reading from weighing scale
+
                     "POS Settings-posa_enable_return_validity",
                     "POS Settings-posa_return_validity_days",
                     "POS Settings-posa_section_dashboard",

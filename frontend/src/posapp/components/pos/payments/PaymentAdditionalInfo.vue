@@ -1,42 +1,78 @@
 <template>
 	<div v-if="invoiceDoc">
-		<!-- Additional Invoice Information (Delivery, Address, Notes) -->
+		<!-- Additional Invoice Information (Delivery, Address, Notes, etc.) -->
 		<v-row class="pa-1">
+			<v-col cols="6">
+				<v-switch
+					v-model="remarks"
+					flat
+					:label="frappe._('Remarks')"
+					class="my-0 py-0"
+				></v-switch>
+			</v-col>
+			<v-col cols="6" v-if="remarks">
+				<v-text-field
+					v-model="invoiceDoc.remarks"
+					:label="frappe._('Remarks')"
+					outlined
+					dense
+					hide-details
+					color="primary"
+				></v-text-field>
+			</v-col>
+			<v-col cols="6" v-if="!invoiceDoc.is_return">
+				<v-switch
+					v-model="staffCustomerDetail"
+					flat
+					:label="frappe._('Staff/Customer Detail')"
+					class="my-0 py-0"
+				></v-switch>
+			</v-col>
+			<v-col cols="6" v-if="staffCustomerDetail">
+				<v-text-field
+					v-model="invoiceDoc.custom_staff_customer_detail"
+					:label="frappe._('Staff/Customer Detail')"
+					outlined
+					dense
+					hide-details
+					color="primary"
+				></v-text-field>
+			</v-col>
 			<!-- Aurocard/UPI ID (if applicable) -->
 			<v-col cols="6" v-show="aurocard">
 				<v-text-field
-				dense
-				outlined
-				color="primary"
-				:label="frappe._('Aurocard POS ID')"
-				background-color="white"
-				hide-details
-				:model-value="aurocardPosId"
-				@update:model-value="$emit('update:aurocardPosId', $event)"
+					dense
+					outlined
+					color="primary"
+					:label="frappe._('Aurocard POS ID')"
+					background-color="white"
+					hide-details
+					:model-value="aurocardPosId"
+					@update:model-value="$emit('update:aurocardPosId', $event)"
 				></v-text-field>
 			</v-col>
 			<v-col cols="6" v-show="aurocard">
 				<v-text-field
-				dense
-				outlined
-				color="primary"
-				:label="frappe._('Aurocard Transaction ID')"
-				background-color="white"
-				hide-details
-				:model-value="aurocardTransId"
-				@update:model-value="$emit('update:aurocardTransId', $event)"
+					dense
+					outlined
+					color="primary"
+					:label="frappe._('Aurocard Transaction ID')"
+					background-color="white"
+					hide-details
+					:model-value="aurocardTransId"
+					@update:model-value="$emit('update:aurocardTransId', $event)"
 				></v-text-field>
 			</v-col>
 			<v-col cols="6" v-show="upi">
 				<v-text-field
-				dense
-				outlined
-				color="primary"
-				:label="frappe._('UPI Transaction ID')"
-				background-color="white"
-				hide-details
-				:model-value="upiTransId"
-				@update:model-value="$emit('update:upiTransId', $event)"
+					dense
+					outlined
+					color="primary"
+					:label="frappe._('UPI Transaction ID')"
+					background-color="white"
+					hide-details
+					:model-value="upiTransId"
+					@update:model-value="$emit('update:upiTransId', $event)"
 				></v-text-field>
 			</v-col>
 			<!-- Delivery Date and Address (if applicable) -->
@@ -153,6 +189,7 @@
 
 <script setup>
 import { inject } from "vue";
+import { ref } from "vue";
 
 defineProps({
 	invoiceDoc: {
@@ -220,6 +257,10 @@ defineEmits([
 
 const $frappe = inject("frappe", window.frappe);
 const $__ = inject("__", window.__);
+
+const remarks = ref(false);
+const staffCustomerDetail = ref(false);
+
 </script>
 
 <style scoped>

@@ -131,7 +131,7 @@
 	</div>
 
 	<v-row v-else dense>
-		<v-col cols="12" sm="6">
+		<v-col cols="12" sm="4">
 			<v-btn
 				block
 				variant="flat"
@@ -145,7 +145,7 @@
 				{{ __("Save & Clear") }}
 			</v-btn>
 		</v-col>
-		<v-col cols="12" sm="6">
+		<v-col cols="12" sm="4">
 			<v-btn
 				block
 				variant="flat"
@@ -159,7 +159,7 @@
 				{{ __("Drafts") }}
 			</v-btn>
 		</v-col>
-		<v-col cols="12" sm="6" v-if="pos_profile.custom_allow_select_sales_order == 1">
+		<v-col cols="12" sm="4" v-if="pos_profile.custom_allow_select_sales_order == 1">
 			<v-btn
 				block
 				variant="flat"
@@ -173,7 +173,7 @@
 				{{ __("Select S.O") }}
 			</v-btn>
 		</v-col>
-		<v-col cols="12" sm="6">
+		<v-col cols="12" sm="4" v-if="pos_profile.posa_display_invoice_mgmt">
 			<v-btn
 				block
 				variant="flat"
@@ -187,7 +187,7 @@
 				{{ __("Invoice Mgmt") }}
 			</v-btn>
 		</v-col>
-		<v-col cols="12" sm="6">
+		<v-col cols="12" sm="4">
 			<v-btn
 				block
 				color="error"
@@ -203,7 +203,10 @@
 			</v-btn>
 		</v-col>
 
-		<v-col cols="12" sm="6" v-if="pos_profile.posa_allow_return == 1">
+		<v-col cols="12"
+			:sm="pos_profile.posa_display_invoice_mgmt ? 4 : 6"
+			v-if="pos_profile.posa_allow_return == 1"
+		>
 			<v-btn
 				block
 				variant="flat"
@@ -217,7 +220,7 @@
 				{{ __("Sales Return") }}
 			</v-btn>
 		</v-col>
-		<v-col cols="12" sm="6" v-if="pos_profile.posa_allow_print_draft_invoices">
+		<v-col cols="12" sm="4" v-if="pos_profile.posa_allow_print_draft_invoices">
 			<v-btn
 				block
 				variant="flat"
@@ -231,7 +234,7 @@
 				{{ __("Print Draft") }}
 			</v-btn>
 		</v-col>
-		<v-col cols="12" sm="6" v-if="showCustomerDisplayButton">
+		<v-col cols="12" sm="4" v-if="showCustomerDisplayButton">
 			<v-btn
 				block
 				variant="flat"
@@ -245,7 +248,7 @@
 				{{ __("Customer Screen") }}
 			</v-btn>
 		</v-col>
-		<v-col cols="12" sm="6">
+		<v-col cols="12" :sm="pos_profile.posa_display_invoice_mgmt ? 4 : 6">
 			<v-btn
 				block
 				color="success"
