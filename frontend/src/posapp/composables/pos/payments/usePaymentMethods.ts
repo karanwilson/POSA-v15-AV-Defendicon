@@ -253,7 +253,8 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 
 	// Karan: adding functionality for Card charges
 	const check_apply_chargeable_mop = async (
-		mop_preferred,
+		mop,
+		customer_group=""
 	) => {
 		chargeableMOPupdate = false; // reset to false
 		const doc = unref(invoiceDoc);
@@ -262,10 +263,16 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 			method: "posawesome.posawesome.api.payment_processing.utils.get_trans_fee_details",
 			args: {
 				company: doc.company,
-				mop: mop_preferred,
+				mop: mop,
 			},
 			async: true,
 		});
+
+		//console.log('r.message["custom_customer_group"]: ', r.message["custom_customer_group"]);
+		if (customer_group) {
+			if (r.message["custom_customer_group"] != customer_group)
+				return false;
+		}
 
 		const found = doc.taxes.find((row) => row.account_head === r.message["account_head"]);
 		// console.log("check_apply_chargeable_mop found: ", found);
@@ -285,7 +292,7 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 				account_head: r.message["account_head"],
 				charge_type: "Actual",
 				//charge_type: "On Net Total",
-				description: __("{0} Charges", [mop_preferred]),
+				description: __("{0} Charges", [mop]),
 				//rate: r.message["custom_transaction_fee_percentage"],
 				tax_amount: transaction_fee,
 				cost_center: r.message["cost_center"],
@@ -297,7 +304,6 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 
 		// Karan: Updating the backend/frontend Invoice when Chargeable MOP is set
 		if (chargeableMOPupdate) {
-
 			const updateResponse = await frappe.call({
 				method: "posawesome.posawesome.api.invoices.update_invoice", // backend update
 				args: { data: doc },
@@ -309,11 +315,30 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 				Object.assign(doc, updateResponse.message); // frontend update
 			}
 		}
+
+		return true;
 	};
 
 	// Set full amount for a payment mode
 	const set_full_amount = async (payment: any, isReturn = false) => {
 		const doc = unref(invoiceDoc);
+		//console.log("doc.customer_group: ", doc.customer_group);
+
+		// Karan: adding functionality for Card charges
+		const check_mop_mapping_apply_tran_fee = await check_apply_chargeable_mop(payment.mode_of_payment, doc.customer_group);
+		//console.log("check_mop_mapping_apply_tran_fee: ", check_mop_mapping_apply_tran_fee);
+
+		// Checking Customer Group to MOP mapping
+		if (!check_mop_mapping_apply_tran_fee) {
+			stores.toastStore.show({
+				title: __("Customer {0} not mapped with MOP {1}", [
+					doc.customer_name,
+					payment.mode_of_payment,
+				]),
+				color: "warning",
+			});
+			return;
+		}
 
 		if (payment.mode_of_payment == "UPI") upi.value = true;
 		else {
@@ -327,9 +352,6 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 			aurocard_pos_id.value = "";
 			aurocard_trans_id.value = "";
 		}
-
-		// Karan: adding functionality for Card charges
-		const check_tran_fee = await check_apply_chargeable_mop(payment.mode_of_payment);
 
 		const invoiceAmount = getInvoiceSettlementAmount();
 		// Reset other payments
