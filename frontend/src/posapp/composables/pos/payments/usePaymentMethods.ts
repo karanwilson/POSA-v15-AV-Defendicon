@@ -340,19 +340,21 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 		//console.log("doc.customer_group: ", doc.customer_group);
 
 		// Karan: adding functionality for Card charges
-		const check_mop_mapping_apply_tran_fee = await check_apply_chargeable_mop(payment.mode_of_payment, doc.customer_group);
-		//console.log("check_mop_mapping_apply_tran_fee: ", check_mop_mapping_apply_tran_fee);
+		if (doc.company != "Pour Tous Distribution Center") {
+			const check_mop_mapping_apply_tran_fee = await check_apply_chargeable_mop(payment.mode_of_payment, doc.customer_group);
+			//console.log("check_mop_mapping_apply_tran_fee: ", check_mop_mapping_apply_tran_fee);
 
-		// Checking Customer Group to MOP mapping
-		if (!check_mop_mapping_apply_tran_fee) {
-			stores.toastStore.show({
-				title: __("Customer {0} not mapped with MOP {1}", [
-					doc.customer_name,
-					payment.mode_of_payment,
-				]),
-				color: "warning",
-			});
-			return;
+			// Checking Customer Group to MOP mapping
+			if (!check_mop_mapping_apply_tran_fee) {
+				stores.toastStore.show({
+					title: __("Customer {0} not mapped with MOP {1}", [
+						doc.customer_name,
+						payment.mode_of_payment,
+					]),
+					color: "warning",
+				});
+				return;
+			}
 		}
 
 		if (payment.mode_of_payment == "UPI") upi.value = true;

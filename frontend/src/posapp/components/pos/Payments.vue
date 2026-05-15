@@ -1506,8 +1506,11 @@ const ensurePaymentLinesInitialized = async (doc = invoice_doc.value) => {
 	const mop_preferred = r.message["mode_of_payment"];
 	console.log("Payments.vue ensurePaymentLinesInitialized mop_preferred: ", mop_preferred);
 
+	let check_tran_fee = false;
 	// Karan: adding functionality for Card charges
-	const check_tran_fee = await check_apply_chargeable_mop(mop_preferred);
+	if (doc.company != "Pour Tous Distribution Center") {
+		check_tran_fee = await check_apply_chargeable_mop(mop_preferred);
+	}
 
 	const initializedPayment = initializePaymentLinesForDialog(
 		doc,
