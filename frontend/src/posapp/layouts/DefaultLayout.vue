@@ -1107,48 +1107,59 @@ const initializeData = async () => {
 };
 
 const fapiLogin = () => {
-	console.log("fapiLogin");
 	//const vm = this;
-	frappe.call({
-		method: 'payments.payment_gateways.doctype.fs_settings.fs_settings.login',
-		callback: function (r) {
-			console.log("r.message: ", r.message);
-			if (r.message) {
-				if (r.message == 'OK') {
-					fsOnline.value = true;
-					// console.log("Home.vue fsOnline.value: ", fsOnline.value);
-					// console.log("Home.vue networkOnline.value: ", networkOnline.value);
+	if (isOffline()) {
+		console.log("isOffline(): ", isOffline());
+	}
+	else {
+		console.log("fapiLogin");
+		frappe.call({
+			method: 'payments.payment_gateways.doctype.fs_settings.fs_settings.login',
+			callback: function (r) {
+				console.log("r.message: ", r.message);
+				if (r.message) {
+					if (r.message == 'OK') {
+						fsOnline.value = true;
+						// console.log("Home.vue fsOnline.value: ", fsOnline.value);
+						// console.log("Home.vue networkOnline.value: ", networkOnline.value);
+					}
+					else {
+					eventBus.emit("show_message", {
+						text: r.message,
+						color: 'error',
+					});
+					}
 				}
-				else {
-				eventBus.emit("show_message", {
-					text: r.message,
-					color: 'error',
-				});
-				}
-			}
-		},
-	});
+			},
+		});
+	}
 }
 
 const iciciPosCheckStatus = () => {
 	//const vm = this;
-	frappe.call({
-		method: 'payments.payment_gateways.doctype.upi_settings.upi_settings.icici_check_service',
-		callback: function (r) {
-			if (r.message) {
-				if (r.message["ResponseCode"] == '01') {
-					iciciOnline.value = true;
-					//console.log("Home.vue iciciOnline.value: ", iciciOnline.value);
+	if (isOffline()) {
+		console.log("isOffline(): ", isOffline());
+	}
+	else {
+		console.log("icici_check_service");
+		frappe.call({
+			method: 'payments.payment_gateways.doctype.upi_settings.upi_settings.icici_check_service',
+			callback: function (r) {
+				if (r.message) {
+					if (r.message["ResponseCode"] == '01') {
+						iciciOnline.value = true;
+						//console.log("Home.vue iciciOnline.value: ", iciciOnline.value);
+					}
+					else {
+					eventBus.emit('show_mesage', {
+						text: r.message,
+						color: 'error',
+					});
+					}
 				}
-				else {
-				eventBus.emit('show_mesage', {
-					text: r.message,
-					color: 'error',
-				});
-				}
-			}
-		},
-	});
+			},
+		});
+	}
 }
 
 const setupEventListeners = () => {
