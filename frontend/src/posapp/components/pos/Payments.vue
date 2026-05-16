@@ -1644,20 +1644,28 @@ const submit = async (_event, payment_received = false, print = false) => {
 
 				if (payment.mode_of_payment === "FS") {
 					//console.log("Payments.vue fsBalanceAvailable: ", fsBalanceAvailable);
-					const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
-					console.log("fs_payment_response res: ", res);
-					// console.log("fs_payment_response res.remarks: ", res.remarks);
-					if (res) {
-						console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
+					if (isOffline()) {
+						console.log("isOffline(): ", isOffline());
+						is_credit_sale.value = true;
+						invoice_doc.value.custom_fs_transfer_status = "Billed Offline";
+						invoice_doc.value.remarks = "Billed Offline";
+					}
+					else {
+						const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
+						console.log("fs_payment_response res: ", res);
+						// console.log("fs_payment_response res.remarks: ", res.remarks);
+						if (res) {
+							console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
 
-						invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
-						if (res.custom_fs_transfer_status == "OK") {
-							if (invoice_doc.value.remarks)
-								invoice_doc.value.remarks += "\n-------------\n" + res.remarks;
-							else invoice_doc.value.remarks = res.remarks;
-							payment_received = true;
+							invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
+							if (res.custom_fs_transfer_status == "OK") {
+								if (invoice_doc.value.remarks)
+									invoice_doc.value.remarks += "\n-------------\n" + res.remarks;
+								else invoice_doc.value.remarks = res.remarks;
+								payment_received = true;
+							}
+							if (res.is_credit_sale) is_credit_sale.value = true;
 						}
-						if (res.is_credit_sale) is_credit_sale.value = true;
 					}
 					break;
 				}
@@ -1729,20 +1737,28 @@ const submit = async (_event, payment_received = false, print = false) => {
 
 				if (payment.mode_of_payment === "FS") {
 					//const res = await make_fs_payment(payment.amount, fsBalanceAvailable.value);
-					const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
-					console.log("fs_payment_response res: ", res);
-					// console.log("fs_payment_response res.remarks: ", res.remarks);
-					if (res) {
-						console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
+					if (isOffline()) {
+						console.log("isOffline(): ", isOffline());
+						is_credit_sale.value = true;
+						invoice_doc.value.custom_fs_transfer_status = "Billed Offline";
+						invoice_doc.value.remarks = "Billed Offline";
+					}
+					else {
+						const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
+						console.log("fs_payment_response res: ", res);
+						// console.log("fs_payment_response res.remarks: ", res.remarks);
+						if (res) {
+							console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
 
-						invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
-						if (res.custom_fs_transfer_status == "OK") {
-							if (invoice_doc.value.remarks)
-								invoice_doc.value.remarks += "\n-------------\n" + res.remarks;
-							else invoice_doc.value.remarks = res.remarks;
-							payment_received = true;
+							invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
+							if (res.custom_fs_transfer_status == "OK") {
+								if (invoice_doc.value.remarks)
+									invoice_doc.value.remarks += "\n-------------\n" + res.remarks;
+								else invoice_doc.value.remarks = res.remarks;
+								payment_received = true;
+							}
+							if (res.is_credit_sale) is_credit_sale.value = true;
 						}
-						if (res.is_credit_sale) is_credit_sale.value = true;
 					}
 					break;
 				}

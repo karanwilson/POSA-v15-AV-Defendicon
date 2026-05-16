@@ -63,18 +63,7 @@
 								clearable
 							></v-text-field>
 						</v-col>
-						<v-col cols="12" sm="2">
-							<v-text-field
-								color="primary"
-								:label="frappe._('Item Code')"
-								class="pos-themed-input"
-								hide-details
-								v-model="item_code"
-								density="compact"
-								clearable
-							></v-text-field>
-						</v-col>
-						<v-col cols="12" sm="2">
+						<v-col cols="12" sm="3">
 							<VueDatePicker
 								v-model="from_date"
 								model-type="format"
@@ -85,7 +74,7 @@
 								@update:model-value="formatFromDate()"
 							/>
 						</v-col>
-						<v-col cols="12" sm="2">
+						<v-col cols="12" sm="3">
 							<VueDatePicker
 								v-model="to_date"
 								model-type="format"
@@ -100,6 +89,17 @@
 
 					<!-- Customer search fields -->
 					<v-row class="mb-2">
+						<v-col cols="12" sm="4">
+							<v-text-field
+								color="primary"
+								:label="frappe._('Item Code')"
+								class="pos-themed-input"
+								hide-details
+								v-model="item_code"
+								density="compact"
+								clearable
+							></v-text-field>
+						</v-col>
 						<v-col cols="12" sm="4">
 							<v-text-field
 								color="primary"
@@ -118,17 +118,6 @@
 								class="pos-themed-input"
 								hide-details
 								v-model="customer_id"
-								density="compact"
-								clearable
-							></v-text-field>
-						</v-col>
-						<v-col cols="12" sm="4">
-							<v-text-field
-								color="primary"
-								:label="frappe._('FS Account')"
-								class="pos-themed-input"
-								hide-details
-								v-model="custom_fs_account_number"
 								density="compact"
 								clearable
 							></v-text-field>
@@ -396,8 +385,8 @@ export default {
 		invoice_name: "",
 		customer_name: "",
 		customer_id: "",
-		custom_fs_account_number: "",
-		customer_group: "", // Karan
+		custom_fs_account_number: "", // Karan
+		//customer_group: "", // Karan
 		mobile_no: "",
 		tax_id: "",
 		from_date: null,
@@ -416,6 +405,12 @@ export default {
 			{
 				title: __("Customer"),
 				value: "customer",
+				align: "start",
+				sortable: true,
+			},
+			{
+				title: __("FS Account"),
+				value: "custom_fs_account_number",
 				align: "start",
 				sortable: true,
 			},
@@ -570,8 +565,8 @@ export default {
 			this.invoice_name = "";
 			this.customer_name = "";
 			this.customer_id = "";
-			this.custom_fs_account_number = "";
-			this.customer_group = ""; // Karan
+			this.custom_fs_account_number = ""; // Karan
+			//this.customer_group = ""; // Karan
 			this.mobile_no = "";
 			this.tax_id = "";
 			this.from_date = null;
@@ -676,8 +671,9 @@ export default {
 				invoice_name: vm.invoice_name,
 				customer_name: vm.customer_name,
 				customer_id: vm.customer_id,
-				custom_fs_account_number: vm.custom_fs_account_number,
-				customer_group: vm.customer_group, // Karan
+				custom_fs_account_number: vm.custom_fs_account_number, // Karan
+				//customer_group: vm.customer_group, // Karan
+				item_code: vm.item_code, // Karan
 				mobile_no: vm.mobile_no,
 				tax_id: vm.tax_id,
 				from_date: formattedFromDate,
@@ -700,6 +696,7 @@ export default {
 					vm.loading_more = false;
 					vm.searched_once = true;
 
+					console.log("Returns r.message: ", r.message);
 					if (r.message) {
 						// If this is page 1, replace data, otherwise append
 						if (vm.page === 1) {
@@ -859,8 +856,8 @@ export default {
 			this.invoice_name = "";
 			this.customer_name = "";
 			this.customer_id = "";
-			this.custom_fs_account_number = "",
-			this.customer_group = "", // Karan
+			this.custom_fs_account_number = "", // Karan
+			//this.customer_group = "", // Karan
 			this.mobile_no = "";
 			this.tax_id = "";
 			this.from_date = null;

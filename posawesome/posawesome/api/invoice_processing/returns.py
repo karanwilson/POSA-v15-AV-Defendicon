@@ -18,6 +18,8 @@ def search_invoices_for_return(
     company,
     customer_name=None,
     customer_id=None,
+    custom_fs_account_number=None,
+    item_code=None,
     mobile_no=None,
     tax_id=None,
     from_date=None,
@@ -36,6 +38,8 @@ def search_invoices_for_return(
         company: Company to search in
         customer_name: Customer name to search for
         customer_id: Customer ID to search for
+        custom_fs_account_number: Customer FS Account to search for
+        item_code: Return Invoices with this Item only
         mobile_no: Mobile number to search for
         tax_id: Tax ID to search for
         from_date: Start date for filtering
@@ -71,9 +75,67 @@ def search_invoices_for_return(
     page_length = 100
     start = (page - 1) * page_length
 
-    # Add invoice name filter if provided
-    if invoice_name:
-        filters["name"] = ["like", f"%{invoice_name}%"]
+    if item_code:
+        # If item_code search criteria is provided, find matching invoices
+        invoice_ids = []
+        if invoice_name or custom_fs_account_number:
+            conditions = [
+                "si.company = %(company)s", "si.docstatus = %(docstatus)s", "si.is_return = %(is_return)s",
+                "sii.parent = si.name", "sii.parenttype = %(doctype)s", "sii.item_code = %(item_code)s"
+            ]
+            params = {
+                "company": company,
+                "docstatus": 1,
+                "is_return": 0,
+                "doctype": doctype,
+                "item_code": item_code,
+            }
+
+            if invoice_name:
+                conditions.append("si.name LIKE %(invoice_name)s")
+                params["invoice_name"] = f"%{invoice_name}%"
+
+            if custom_fs_account_number:
+                conditions.append("si.custom_fs_account_number = %(custom_fs_account_number)s")
+                params["custom_fs_account_number"] = custom_fs_account_number
+
+            # Build the WHERE clause for the query
+            where_clause = " AND ".join(conditions)
+            invoice_query = f"""
+            SELECT si.name
+            FROM `tabSales Invoice` si, `tabSales Invoice Item` sii
+            WHERE {where_clause}
+            LIMIT 100
+            """
+
+            invoices = frappe.db.sql(invoice_query, params, as_dict=True)
+            if invoices:
+                invoice_ids = [i.name for i in invoices]
+
+                # If we found matching invoices, add them to the filter
+                filters = {} # because these are already included in params above, with results in filters["invoice"] below
+                filters["name"] = ["in", invoice_ids]
+
+            elif any([invoice_name, custom_fs_account_number, item_code]):
+                log_perf_event(
+                    "search_invoices_for_return",
+                    started_at,
+                    doctype=doctype,
+                    page=page,
+                    rows=0,
+                    invoice_matches=0,
+                    early_exit=1,
+                )
+                return {"invoices": [], "has_more": False}
+
+    else:
+        # Add invoice name filter if provided
+        if invoice_name:
+            filters["name"] = ["like", f"%{invoice_name}%"]
+        
+        # Add custom_fs_account_number filter if provided
+        if custom_fs_account_number:
+            filters["custom_fs_account_number"] = ["=", custom_fs_account_number]
 
     # Add date range filters if provided
     if from_date:
@@ -125,7 +187,7 @@ def search_invoices_for_return(
         FROM `tabCustomer`
         WHERE {where_clause}
         LIMIT 100
-    """
+        """
 
         customers = frappe.db.sql(customer_query, params, as_dict=True)
         customer_ids = [c.name for c in customers]
@@ -155,6 +217,7 @@ def search_invoices_for_return(
             "company",
             "customer",
             "customer_name",
+            "custom_fs_account_number",
             "posting_date",
             "posting_time",
             "grand_total",

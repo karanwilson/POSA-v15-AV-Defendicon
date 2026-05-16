@@ -128,22 +128,29 @@ export async function fetch_customer_fs_balance(context: any) {
 
 		// Check if offline and use cached balance
 		if (isOffline()) {
-			const cachedBalance = getCachedCustomerFsBalance(context.customer);
-			if (cachedBalance !== null) {
-				context.fs_balance_available = cachedBalance;
-				return;
-			} else {
-				// No cached balance available in offline mode
-				// FS grey indicator
-				context.toastStore.show({
-					title: __("Customer FS balance unavailable offline"),
-					text: __(
-						"FS Balance will be updated when connection is restored",
-					),
-					color: "warning",
-				});
-				return;
-			}
+			console.log("isOffline(): ", isOffline());
+			context.toastStore.show({
+				title: __("Error fetching FS customer balance"),
+				color: "error",
+			});
+			context.fs_balance_available = 0;
+			return;
+			// const cachedBalance = getCachedCustomerFsBalance(context.customer);
+			// if (cachedBalance !== null) {
+			// 	context.fs_balance_available = cachedBalance;
+			// 	return;
+			// } else {
+			// 	// No cached balance available in offline mode
+			// 	// FS grey indicator
+			// 	context.toastStore.show({
+			// 		title: __("Customer FS balance unavailable offline"),
+			// 		text: __(
+			// 			"FS Balance will be updated when connection is restored",
+			// 		),
+			// 		color: "warning",
+			// 	});
+			// 	return;
+			// }
 		}
 
 		// Online mode: fetch from server and cache the result
