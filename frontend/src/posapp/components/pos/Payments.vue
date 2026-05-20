@@ -1781,6 +1781,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 					if (invoice_doc.value.remarks)
 						invoice_doc.value.remarks += "\n-------------\n" + "UPI Transaction ID: " + upi_trans_id.value;
 					else invoice_doc.value.remarks = "UPI Transaction ID: " + upi_trans_id.value;
+					invoice_doc.value.custom_upi_transaction_id = upi_trans_id.value;
 					payment_received = true;
 					break;
 				}
