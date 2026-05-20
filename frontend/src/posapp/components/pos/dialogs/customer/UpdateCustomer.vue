@@ -28,14 +28,14 @@
 									ref="customerNameField"
 									density="compact"
 									color="primary"
-									:label="frappe._('Customer Name') + ' *'"
+									:label="frappe._('Customer Name / Aurocard Number') + ' *'"
 									hide-details
 									class="pos-themed-input"
 									v-model="customer_name"
 								></v-text-field>
 							</v-col>
 							<!--for search with FS Account Numbers-->
-							<v-col cols="6">
+							<!-- <v-col cols="6">
 								<v-text-field
 									density="compact"
 									color="primary"
@@ -138,7 +138,7 @@
 									@update:model-value="formatBirthdayOnInput"
 									class="pos-themed-input"
 								></v-text-field>
-							</v-col>
+							</v-col> -->
 							<v-col cols="6" v-if="!hideNonEssential">
 								<v-autocomplete
 									clearable
@@ -171,7 +171,7 @@
 								>
 								</v-autocomplete>
 							</v-col>
-							<v-col cols="6" v-if="loyalty_program">
+							<!-- <v-col cols="6" v-if="loyalty_program">
 								<v-text-field
 									v-model="loyalty_program"
 									:label="frappe._('Loyalty Program')"
@@ -190,7 +190,7 @@
 									hide-details
 									class="pos-themed-input"
 								></v-text-field>
-							</v-col>
+							</v-col> -->
 						</v-row>
 					</v-container>
 				</v-card-text>
