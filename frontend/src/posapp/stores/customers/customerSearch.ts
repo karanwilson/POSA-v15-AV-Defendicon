@@ -91,8 +91,9 @@ export function buildCustomerSearchText(
 
 	return [
 		customer.customer_name,
-		customer.custom_fs_account_number,
-		customer.name,
+		// Karan: commenting some params for narrowing/improving match accuracy
+		// customer.custom_fs_account_number,
+		// customer.name,
 		customer.mobile_no,
 		customer.email_id,
 		(customer as CustomerSummary & { tax_id?: unknown }).tax_id,
@@ -118,6 +119,25 @@ export function customerMatchesSearchParts(
 		return false;
 	}
 
+	// const values = [
+	// 	customer.customer_name,
+	// 	//customer.custom_fs_account_number,
+	// 	//customer.name,
+	// 	//customer.mobile_no,
+	// 	customer.email_id,
+	// 	(customer as CustomerSummary & { tax_id?: unknown }).tax_id,
+	// ]
+	// 	.filter((value) => value !== null && value !== undefined)
+	// 	.map((value) => String(value).toLowerCase());
+
+	// if (customer.custom_fs_account_number)
+	// 	if (customer.custom_fs_account_number == term)
+	// 		return true;
+
+	// return searchParts.every((part) =>
+	// 	values.some((value) => value.includes(part)),
+	// );
+
 	const searchableCustomer = customer as SearchableCustomer;
 	const searchText =
 		searchableCustomer._search_text || buildCustomerSearchText(customer);
@@ -129,6 +149,10 @@ export function customerMatchesSearchTerm(
 	customer: CustomerSummary | null | undefined,
 	term: string | null | undefined,
 ): boolean {
+	// Karan: for exact matches of FS accounts
+	if (customer?.custom_fs_account_number)
+		if (customer.custom_fs_account_number == term)
+			return true;
 	if (isCustomerMobileSearchTerm(term)) {
 		return (
 			customerMobileMatchesSearch(customer?.mobile_no, term) ||
