@@ -294,16 +294,41 @@ def calc_delivery_charges(doc):
         )
 
     if old_doc and old_doc.posa_delivery_charges:
-        old_charges = next(
-            (
-                i
-                for i in doc.taxes
-                if i.charge_type == "Actual" and i.description == old_doc.posa_delivery_charges
-            ),
-            None,
-        )
-        if old_charges:
-            doc.taxes.remove(old_charges)
+        # old_charges = next(
+        #     (
+        #         i
+        #         for i in doc.taxes
+        #         if i.charge_type == "Actual" and i.description == old_doc.posa_delivery_charges
+        #     ),
+        #     None,
+        # )
+        # if old_charges:
+        #     doc.taxes.remove(old_charges)
+        #     calculate_taxes_and_totals = True
+
+        # Karan: Re-Indexing the taxes array, in order to overcome the bug of a duplicate array index when 
+        # the delivery charge is removed and re-added in this calc_delivery_charges block - 
+        # - during the presence of another "Actual" tax row of "Payment Transaction Fee"
+        res = []
+        for i in doc.taxes:
+            if i.charge_type == "Actual" and i.description == old_doc.posa_delivery_charges:
+                pass
+            else:
+                res.append(i)
+        #frappe.throw(str(len(res)))
+        if res:
+            doc.taxes = []
+            for i in res:
+                doc.append(
+                    "taxes",
+                    {
+                        "charge_type": i.charge_type,
+                        "description": i.description,
+                        "tax_amount": i.tax_amount,
+                        "cost_center": i.cost_center,
+                        "account_head": i.account_head,
+                    },
+                )
             calculate_taxes_and_totals = True
 
     if doc.posa_delivery_charges:
