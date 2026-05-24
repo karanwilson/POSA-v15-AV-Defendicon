@@ -28,14 +28,18 @@ export function customerMatchesSearchTerm(
 
 	const values = [
 		customer.customer_name,
-		customer.custom_fs_account_number,
-		customer.name,
-		customer.mobile_no,
+		//customer.custom_fs_account_number,
+		//customer.name,
+		//customer.mobile_no,
 		customer.email_id,
 		(customer as CustomerSummary & { tax_id?: unknown }).tax_id,
 	]
 		.filter((value) => value !== null && value !== undefined)
 		.map((value) => String(value).toLowerCase());
+
+	if (customer.custom_fs_account_number)
+		if (customer.custom_fs_account_number == term)
+			return true;
 
 	return searchParts.every((part) =>
 		values.some((value) => value.includes(part)),

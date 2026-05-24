@@ -451,8 +451,11 @@ export default {
 		const handleEnter = (event) => {
 			const inputText = event.target.value?.toLowerCase() || "";
 			const matched = customers.value.find((cust) => {
+				if (cust.custom_fs_account_number)
+					if (cust.custom_fs_account_number == inputText)
+						return true;
 				return (
-					cust.custom_fs_account_number?.toLowerCase().includes(inputText) ||
+					//cust.custom_fs_account_number?.toLowerCase().includes(inputText) ||
 					cust.customer_name?.toLowerCase().includes(inputText) ||
 					cust.name?.toLowerCase().includes(inputText)
 				);
