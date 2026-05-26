@@ -255,21 +255,24 @@ export function useItemSearch() {
 					break;
 				}
 
-				if (item._search_index) {
-					matches = activeTerms.every((t) =>
-						item._search_index!.includes(t),
-					);
-				} else {
+				// Karan: Commenting the lines below, as in exception cases they were matching with single row,
+				// and blocking the Item Code direct-server searches
+
+				// if (item._search_index) {
+				// 	matches = activeTerms.every((t) =>
+				// 		item._search_index!.includes(t),
+				// 	);
+				// } else {
 					// Fallback
 					const rawIndex = (
-						(item.item_code || "") +
-						" " +
+						// (item.item_code || "") +
+						// " " +
 						(item.item_name || "") +
 						" " +
 						(item.barcode || "")
 					).toLowerCase();
 					matches = activeTerms.every((t) => rawIndex.includes(t));
-				}
+				//}
 				if (!matches) continue;
 			}
 
