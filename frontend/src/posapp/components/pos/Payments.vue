@@ -1681,6 +1681,11 @@ const submit = async (_event, payment_received = false, print = false) => {
 					break;
 				}
 
+				else if (payment.mode_of_payment === "ICICI UPI") {
+					tran_type = 16;
+					icici_pos = true;
+					//break;
+				}
 				else if (payment.mode_of_payment === "UPI") {
 					tran_type = 16;
 					icici_pos = true;
