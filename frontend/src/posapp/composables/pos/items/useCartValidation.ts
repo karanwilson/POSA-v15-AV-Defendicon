@@ -27,6 +27,7 @@ export function useCartValidation() {
 		isReturnInvoice = false,
 		deferStockValidationToPayment = false,
 	) {
+		// Karan: console.log("Label-A");
 		isValidating.value = true;
 		validationError.value = null;
 
@@ -47,12 +48,18 @@ export function useCartValidation() {
 
 			// Allow adding lines in Order/Quotation; enforce stock at Invoice payment/submit stage.
 			if (deferStockValidationToPayment && !isReturnInvoice) {
+				// Karan: console.log("Label-B");
 				return true;
 			}
 
 			const isStockItem = parseBooleanSetting(item?.is_stock_item);
+			// Karan:
+			// console.log("Label-C");
+			// console.log("isStockItem: ", isStockItem);
+			// console.log("isReturnInvoice: ", isReturnInvoice);
 
 			if (isStockItem && !isReturnInvoice) {
+				// Karan: console.log("Label-D");
 				const blockSale = shouldBlockSaleForStock({
 					item,
 					requestedQty,
@@ -75,12 +82,15 @@ export function useCartValidation() {
 					return false;
 				}
 
+				// Karan: console.log("Label-E");
 				if (!skipServerValidation) {
+					// Karan: console.log("Label-F");
 					const stockValidationResult = await validateStockOnServer(
 						item,
 						requestedQty,
 						posProfile,
 					);
+					// Karan: console.log("useCartValidation stockValidationResult: ", stockValidationResult);
 
 					if (!stockValidationResult.isValid) {
 						toastStore.show({

@@ -15,9 +15,9 @@
 				:loading="isCustomerSearchLocked || isCustomerLookupPending"
 				v-model="internalCustomer"
 				:items="filteredCustomers"
-				item-title="customer_name"
+				:item-title="(item) => item.custom_fs_account_number? `${item.customer_name} - ${item.custom_fs_account_number}` : item.customer_name"
+				auto-select-first
 				item-value="name"
-				:optionLabel="getCustomerInfo"
 				:no-data-text="customerNoDataText"
 				hide-details
 				:customFilter="() => true"
@@ -311,7 +311,7 @@ export default {
 			() => `${Number(loadedCustomerCount.value || 0).toLocaleString()} ${__("customers")}`,
 		);
 		const customerFieldLabel = computed(() =>
-			showCustomerLoadProgress.value ? frappe._("Loading customers") : frappe._("Customer"),
+			showCustomerLoadProgress.value ? frappe._("Loading customers") : frappe._("Name/ FS Account No./ Aurocard No."),
 		);
 		const customerFieldPlaceholder = computed(() =>
 			showCustomerLoadProgress.value ? __("Loading customers...") : __("Search customer"),
@@ -370,13 +370,6 @@ export default {
 				load: customersStore.get_customer_names,
 				isReady: hasReadyCustomerCache,
 			});
-		};
-
-		// to display the Customer's FS account number and community
-		const getCustomerInfo = (item) => {
-			console.log("Customer item: ", item);
-			console.log("Customer item.raw: ", item.raw);
-			return `${item.raw.customer_name}   ${item.raw.custom_fs_account_number}   ${item.raw.address_line1}`;
 		};
 
 		watch(
@@ -534,6 +527,7 @@ export default {
 			}
 
 			uiStore.triggerItemSearchFocus();
+			return;
 		};
 
 		const new_customer = () => {

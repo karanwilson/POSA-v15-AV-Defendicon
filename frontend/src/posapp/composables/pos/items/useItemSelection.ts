@@ -262,7 +262,7 @@ export function useItemSelection() {
 			//return;
 		}
 		const firstItem = ctx.displayedItems[0];
-		// console.log("useItemSelection selectTopItem firstItem: ", firstItem);
+		// Karan: console.log("useItemSelection selectTopItem firstItem: ", firstItem);
 		if (!firstItem) {
 			return false;
 			//return;
@@ -364,8 +364,6 @@ export function useItemSelection() {
 		event: MouseEvent,
 		{ item }: { item: SelectableItem },
 	) {
-		// console.log("handleRowClick event: ", event);
-		// console.log("handleRowClick item: ", item);
 		triggerFlyAnimation(event, true);
 		if (ctx.addItem) await ctx.addItem(item);
 	}

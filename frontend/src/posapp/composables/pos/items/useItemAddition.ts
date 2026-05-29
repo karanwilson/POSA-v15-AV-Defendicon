@@ -238,6 +238,7 @@ export function useItemAddition() {
 	let flushScheduled = false;
 
 	const flushPendingItems = async (context) => {
+		// Karan: console.log("label-G");
 		if (!pendingItems.length && !pendingUpdates.size) return;
 
 		const currentItems = [...pendingItems];
@@ -251,6 +252,7 @@ export function useItemAddition() {
 
 		// 1. Process Updates
 		for (const [rowId, data] of currentUpdates) {
+			// Karan: console.log("label-H");
 			const applyPendingUpdate = (line: any) => {
 				line.qty = toFiniteNumber(line.qty) + toFiniteNumber(data.qty);
 				calcStockQty(line, line.qty);
@@ -296,6 +298,7 @@ export function useItemAddition() {
 				currentItems,
 				insertIndex,
 			);
+			// Karan: console.log("addedItems", addedItems);
 			const firstAddedIndex = insertIndex < 0 ? existingItemCount : 0;
 
 			addedItems.forEach((item, index) => {
@@ -372,6 +375,7 @@ export function useItemAddition() {
 			splitItems.forEach((line: any) => {
 				if (context.appendNewItems) context.items.push(line);
 				else context.items.unshift(line);
+				// Karan: console.log("C: context.items: ", context.items);
 				refreshMergeCacheEntry(
 					context,
 					line,
@@ -487,6 +491,7 @@ export function useItemAddition() {
 
 			let new_item: any;
 			if (index === -1 || context.new_line) {
+				// Karan: console.log("label-A");
 				new_item = getNewItem(item, context);
 				new_item._needs_update = true; // Mark new item for background update
 
@@ -651,11 +656,16 @@ export function useItemAddition() {
 				}
 
 				if (index === -1 || context.new_line) {
+					// Karan: console.log("label-B");
 					if (context.invoiceStore) {
 						// Use batching
 						return new Promise((resolve) => {
 							const toQueue = [new_item, ...extra_items];
+							// Karan: console.log("toQueue", toQueue);
 							toQueue.forEach((line, lineIndex) => {
+								// Karan:  console.log("line", line);
+								// console.log("lineIndex", lineIndex);
+								// console.log("pendingItem", pendingItems);
 								const pendingIndex = pendingItems.findIndex(
 									(pendingItem) =>
 										pendingItem.item_code ===
@@ -665,6 +675,7 @@ export function useItemAddition() {
 										(pendingItem.batch_no || "") ===
 											(line.batch_no || ""),
 								);
+								// Karan: console.log("pendingIndex", pendingIndex);
 
 								if (pendingIndex !== -1 && !context.new_line) {
 									const pendingItem =
@@ -679,6 +690,7 @@ export function useItemAddition() {
 											qtyOrOne(line.qty);
 									}
 									if (lineIndex === 0) {
+										// Karan: console.log("label-C");
 										const existingResolvers =
 											pendingResolvers[pendingIndex] ||
 											[];
@@ -687,6 +699,7 @@ export function useItemAddition() {
 											existingResolvers;
 									}
 								} else {
+									// Karan: console.log("label-D");
 									pendingItems.push(line);
 									pendingResolvers.push(
 										lineIndex === 0 ? [resolve] : [],
@@ -705,6 +718,7 @@ export function useItemAddition() {
 						if (context.appendNewItems)
 							context.items.push(new_item);
 						else context.items.unshift(new_item);
+						// Karan: console.log("A: context.items: ", context.items);
 						refreshMergeCacheEntry(
 							context,
 							new_item,
@@ -723,6 +737,7 @@ export function useItemAddition() {
 								if (context.appendNewItems)
 									context.items.push(split_item);
 								else context.items.unshift(split_item);
+								// Karan: console.log("B: context.items: ", context.items);
 								// Replicate basic setup for split items
 								refreshMergeCacheEntry(
 									context,
@@ -759,6 +774,8 @@ export function useItemAddition() {
 						handleItemExpansion(new_item, context);
 					}
 				} else {
+					// Karan: console.log("label-E");
+
 					// Existing item update
 					const cur_item = context.items[index];
 					const qtyDelta = context.isReturnInvoice
@@ -914,6 +931,7 @@ export function useItemAddition() {
 					}
 				}
 			} else {
+				// Karan: console.log("label-F");
 				let cur_item = context.items[index];
 				const previousQty = cur_item.qty;
 				if (context.update_items_details) {
