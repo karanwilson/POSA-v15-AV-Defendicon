@@ -372,6 +372,8 @@ export function useScanProcessor(context: ScanProcessorContext) {
 
 		try {
 			// FIXED: Use itemAddition.addItem instead of context.add_item_wrapper
+
+			// Karan: console.log("useScanProcessor addScannedItemToInvoice newItem: ", newItem);
 			await itemAddition.addItem(newItem, {
 				suppressNegativeWarning: true,
 				skipNotification: true,
@@ -615,10 +617,13 @@ export function useScanProcessor(context: ScanProcessorContext) {
 		// If not found locally, attempt to fetch from server using processed code
 		try {
 			let newItem: any = null;
-			if (qtyFromBarcode !== null) {
+			// Karan: this function call was made primary for all barcode scans via server-pull, as
+			// the one below was leading to many errored fetches, and took very long.
+
+			//if (qtyFromBarcode !== null) {
 				// Scale barcodes use a direct, faster lookup
 				const res = await frappe.call({
-					method: "posawesome.posawesome.api.items.get_item_detail",
+					method: "posawesome.posawesome.api.items.	",
 					args: {
 						item: JSON.stringify({ item_code: searchCode }),
 						warehouse: pos_profile.value.warehouse,
@@ -629,21 +634,25 @@ export function useScanProcessor(context: ScanProcessorContext) {
 				if (res && res.message) {
 					newItem = res.message;
 				}
-			} else {
-				// Regular barcodes and searches use the generic search
-				const res = await frappe.call({
-					method: "posawesome.posawesome.api.items.get_items",
-					args: {
-						pos_profile: pos_profile.value,
-						price_list: active_price_list.value,
-						search_value: searchCode,
-					},
-				});
+			
+			// Karan: the below function call was leading to many errored fetches, and took very long, hence using the one above
 
-				if (res && res.message && res.message.length > 0) {
-					newItem = res.message[0];
-				}
-			}
+			//} else {
+			// 	// Regular barcodes and searches use the generic search
+			// 	const res = await frappe.call({
+			// 		method: "posawesome.posawesome.api.items.get_items",
+			// 		args: {
+			// 			pos_profile: pos_profile.value,
+			// 			price_list: active_price_list.value,
+			// 			search_value: searchCode,
+			// 		},
+			// 	});
+
+			// 	if (res && res.message && res.message.length > 0) {
+			// 		newItem = res.message[0];
+			// 		// this is a bug: need to search for the requested item in this array, not pull the 1st one from it
+			// 	}
+			//}
 
 			if (newItem) {
 				items.value.push(newItem);
@@ -663,6 +672,8 @@ export function useScanProcessor(context: ScanProcessorContext) {
 					eventBus.emit("set_all_items", items.value);
 
 				await itemDetailFetcher.update_items_details([newItem]);
+				//console.log("useScanProcessor itemDetailFetcher.update_items_details([newItem]): ", newItem);
+
 				const localAssignment = extractScanAssignmentFromItem(
 					newItem,
 					scannedCode,

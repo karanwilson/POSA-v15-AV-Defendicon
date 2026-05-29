@@ -110,9 +110,9 @@ export const useItemsSelectorSettings = ({
 		);
 		const itemsPerPage = getValue("items_per_page", vm.temp_items_per_page);
 		if (vm.enable_custom_items_per_page) {
-			vm.items_per_page = parseInt(itemsPerPage) || 50;
+			vm.items_per_page = parseInt(itemsPerPage) || 500;
 		} else {
-			vm.items_per_page = 50;
+			vm.items_per_page = 500;
 		}
 		vm.itemsPerPage = vm.items_per_page;
 		vm.pos_profile.posa_force_server_items = getValue(

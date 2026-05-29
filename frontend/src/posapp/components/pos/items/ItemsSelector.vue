@@ -349,16 +349,16 @@ const hide_zero_rate_items = ref(false);
 const show_last_invoice_rate = ref(true);
 const enable_background_sync = ref(true);
 const background_sync_interval = ref(30);
-const enable_custom_items_per_page = ref(false);
-const items_per_page = ref(50);
+const enable_custom_items_per_page = ref(true);
+const items_per_page = ref(500);
 
 // Temporary Settings Refs (for dialog)
 const show_item_settings = ref(false);
 const temp_new_line = ref(false);
 const temp_hide_qty_decimals = ref(false);
 const temp_hide_zero_rate_items = ref(false);
-const temp_enable_custom_items_per_page = ref(false);
-const temp_items_per_page = ref(50);
+const temp_enable_custom_items_per_page = ref(true);
+const temp_items_per_page = ref(500);
 const temp_force_server_items = ref(false);
 const temp_show_last_invoice_rate = ref(true);
 const temp_enable_background_sync = ref(true);
@@ -611,6 +611,7 @@ const add_item = async (item, optionsOrQty: any = {}) => {
 		requestedQty =
 			requestedQty === "" || requestedQty == null ? 1 : Math.abs(parseFloat(requestedQty) || 1);
 
+		// Karan: console.log("requestedQty: ", requestedQty);
 		item = { ...item };
 		if (item.has_variants) {
 			await useItemAddition().handleVariantItem(item, {
@@ -666,6 +667,8 @@ const add_item = async (item, optionsOrQty: any = {}) => {
 			}
 			qty.value = 1;
 		}
+		clearSearch();
+		itemsSelectorFocus.focusItemSearch();
 	} else {
 		emit("add-item", item);
 	}
@@ -1073,17 +1076,58 @@ const {
 
 // Proxy functions for template
 const esc_event = () => clearSearch();
-const onEnter = (e) => { // Karan: customised for Item_code based matches
-	// console.log("typeof e: ", typeof e);
-	// console.log("typeof e === undefined ", typeof e === undefined);
-	// console.log("(e === underfined): ", e === undefined);
-	// console.log("e: ", e);
+const onEnter = async(e) => { // Karan: adding custom-code for Item_code based matches (Both Locally and from Server)
 	if (e) itemsSelectorSearch.onEnter(e);
 	else {
 		const added = itemSelection.selectTopItem();
-		if (added == false) {
-			const item = itemsIntegration.findItemByCode(search_input.value);
+		if (added === false) {
+			const item = await itemsIntegration.findItemByCode(search_input.value);
+			console.log("itemsIntegration.findItemByCode item: ", item);
 			if (item) itemSelection.add_item(item);
+			else {
+				let newItem: any = null;
+				const r = await frappe.call({
+					method: "posawesome.posawesome.api.item_processing.search.get_item_and_price",
+					args: { item_code: search_input.value},
+				});
+				if (r.message) {
+					// console.log("item_processing.search.get_item_and_price r.message: ", r.message);
+					// console.log("item_processing.search.get_item_and_price r.message[0]: ", r.message[0]); // item_data dict
+					// console.log("item_processing.search.get_item_and_price r.message[1]: ", r.message[1]); // item price
+					// console.log("JSON.stringify(r.message[0]): ", JSON.stringify(r.message[0]));
+
+					const res = await frappe.call({
+						method: "posawesome.posawesome.api.item_processing.details.get_item_detail",
+						args: {
+							item: JSON.stringify(r.message[0]),
+							warehouse: pos_profile.value.warehouse,
+							price_list: itemsIntegration.active_price_list.value,
+							company: pos_profile.value.company,
+						},
+					});
+					if (res && res.message) {
+						console.log("posawesome.api.items.get_item_detail res.message: ", res.message);
+
+						// Setting the needed parameters (based on useScanProcessor add Item)
+						res.message.currency = res.message.original_currency = pos_profile.value?.currency;
+						if (res.message.rate == 0) {
+							res.message.price_list_rate = res.message.base_price_list_rate = parseFloat(r.message[1]);
+							res.message.valuation_rate = parseFloat(r.message[1]);
+							res.message.rate = res.message.base_rate = res.message.original_rate = parseFloat(r.message[1]);
+						}
+
+						newItem = res.message;
+						const options = {
+							"qty": debounce_qty.value,
+							"notifyOnSuccess": true,
+							//"custom_add": true
+						}
+
+						console.log("ItemSelector onEnter newItem: ", newItem);
+						await add_item(newItem, options);
+					}
+				}
+			}
 		}
 	}
 	uiStore.triggerItemSearchFocus();

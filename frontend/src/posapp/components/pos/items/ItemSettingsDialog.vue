@@ -134,8 +134,8 @@ const form = reactive({
 	show_last_invoice_rate: true,
 	enable_background_sync: true,
 	background_sync_interval: 30,
-	enable_custom_items_per_page: false,
-	items_per_page: 50,
+	enable_custom_items_per_page: true,
+	items_per_page: 500,
 	force_server_items: false,
 });
 

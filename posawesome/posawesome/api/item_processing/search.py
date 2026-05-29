@@ -681,3 +681,30 @@ def get_items_count(pos_profile, item_groups=None):
     if item_groups:
         filters["item_group"] = ["in", item_groups]
     return frappe.db.count("Item", filters)
+
+
+@frappe.whitelist()
+def get_item_and_price(item_code):
+    if frappe.db.exists("Item", item_code):
+        fields = [
+            "name",
+            "modified",
+            "item_code",
+            "item_name",
+            "stock_uom",
+            "is_stock_item",
+            "has_variants",
+            "variant_of",
+            "item_group",
+            "idx",
+            "has_batch_no",
+            "has_serial_no",
+            "max_discount",
+            "brand",
+            "allow_negative_stock",
+        ]
+
+        res = frappe.db.get_value("Item", {"item_code": item_code}, fields, as_dict=1);
+        if res:
+            price_list_rate = frappe.db.get_value("Item Price", {"item_code": item_code, "price_list": "Standard Selling"}, "price_list_rate")
+            return res, price_list_rate

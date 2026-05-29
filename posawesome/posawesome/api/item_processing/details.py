@@ -90,6 +90,7 @@ def get_item_detail(item, doc=None, warehouse=None, price_list=None, company=Non
         )
 
     item["selling_price_list"] = price_list
+    item["warehouse"] = warehouse # Karan: Adding the missing warehouse parameter, for correct Stock Info pulls
 
     # Determine if multi-currency is enabled on the POS Profile
     allow_multi_currency = False
@@ -187,6 +188,8 @@ def get_item_detail(item, doc=None, warehouse=None, price_list=None, company=Non
             uoms.append({"uom": stock_uom, "conversion_factor": 1.0})
 
     res["item_uoms"] = uoms
+    # Karan: Adding the missing is_stock_item parameter, for enabling 'Validation' before adding Item to Invoice
+    res["is_stock_item"] = item.get("is_stock_item")
 
     return res
 

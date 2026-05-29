@@ -67,7 +67,7 @@
 		</v-col>
 
 		<v-col cols="12"
-			:sm="pos_profile.posa_display_invoice_mgmt ? 4 : 6"
+			sm="4"
 			v-if="pos_profile.posa_allow_return == 1"
 		>
 			<v-btn
@@ -108,7 +108,7 @@
 				{{ __("Customer Screen") }}
 			</v-btn>
 		</v-col>
-		<v-col cols="12" :sm="pos_profile.posa_display_invoice_mgmt ? 4 : 6">
+		<v-col cols="12" sm="4">
 			<v-btn
 				block
 				color="success"

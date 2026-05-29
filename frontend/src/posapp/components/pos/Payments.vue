@@ -1242,7 +1242,8 @@ const ensurePaymentLinesInitialized = async (doc = invoice_doc.value) => {
 	let check_tran_fee = false;
 	// Karan: adding functionality for Card charges
 	if (doc.company != "Pour Tous Distribution Center") {
-		check_tran_fee = await check_apply_chargeable_mop(mop_preferred);
+		if (mop_preferred)
+			check_tran_fee = await check_apply_chargeable_mop(mop_preferred);
 	}
 
 	const initializedPayment = initializePaymentLinesForDialog(
@@ -1836,7 +1837,9 @@ const getUpiConfirmation = async ( payment_received = false ) => {
 };
 
 const bypassDynamicQr = async () => {
-	invoice_doc.value.remarks = "Bypassed Dynamic QR";
+	if (invoice_doc.value.remarks)
+		invoice_doc.value.remarks += "\n-------------\n" + "Bypassed Dynamic QR";
+	else invoice_doc.value.remarks = "Bypassed Dynamic QR";
 	const print = await bypass_dynamic_qr();
 
 	// if ICICI POS payment successfull, then submitInvoiceWrapper with paymentReceived, here:-

@@ -252,22 +252,25 @@ export function useItemSearch() {
 					break;
 				}
 
-				// Karan: Commenting the lines below, as in exception cases they were matching with single row,
-				// and blocking the Item Code direct-server searches
+				// Karan: commented the following lines, as they are not as per the user requirements at AV
 
 				// if (item._search_index) {
 				// 	matches = activeTerms.every((t) =>
 				// 		item._search_index!.includes(t),
 				// 	);
 				// } else {
-					// Fallback
-					const rawIndex = (
-						// (item.item_code || "") +
-						// " " +
-						(item.item_name || "") +
-						" " +
-						(item.barcode || "")
-					).toLowerCase();
+					//Fallback
+					// const rawIndex = (
+					// 	(item.item_code || "") +
+					// 	" " +
+					// 	(item.item_name || "") +
+					// 	" " +
+					// 	(item.barcode || "")
+					// ).toLowerCase();
+
+					// Karan: removing all digits for name matching, to avoid a conlict-match with item_code exact-matches:-
+					const itemNameWithNoDigits = item.item_name?.replace(/[0-9]/g, '');
+					const rawIndex = (itemNameWithNoDigits || "").toLowerCase();
 					matches = activeTerms.every((t) => rawIndex.includes(t));
 				//}
 				if (!matches) continue;
