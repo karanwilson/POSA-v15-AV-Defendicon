@@ -2039,7 +2039,7 @@ def _submit_invoice_once(invoice, data, submit_in_background=False):
     if invoice_doc.remarks is None:
         invoice_doc.remarks = _build_invoice_remarks(invoice_doc)
     else:
-        invoice_doc.remarks += "\n--------------------\n" + _build_invoice_remarks(invoice_doc)
+        invoice_doc.remarks += "\n--------------------\n" + _build_invoice_remarks(invoice_doc) # Karan: for appending to existing billing remarks
 
     # calculating cash
     total_cash = 0

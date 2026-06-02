@@ -370,6 +370,10 @@ def get_invoice_for_return(invoice_name, pos_profile=None, doctype="Sales Invoic
         ],
     }
 
+    if invoice_doc.custom_fs_account_number and invoice_doc.status != "Paid":
+        invoice["unpaid_fs_invoice"] = "true"
+        return invoice
+
     meta = frappe.get_meta(doctype)
     item_field = meta.get_field("items")
     item_doctype = item_field.options if item_field else None

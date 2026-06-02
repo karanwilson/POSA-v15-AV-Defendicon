@@ -1365,7 +1365,11 @@ const syncPreferredPaymentToCurrentTotal = (doc = invoice_doc.value) => {
 	// Karan: Adding code for Customer-MOP mapping
 	const r = await frappe.db.get_value("Mode of Payment", {'custom_customer_group': doc.customer_group}, 'mode_of_payment');
 	const mop_preferred = r.message["mode_of_payment"];
-	console.log("Payments.vue syncPreferredPaymentToCurrentTotal mop_preferred: ", mop_preferred);
+	if (!mop_preferred) {
+		console.log("Payments.vue syncPreferredPaymentToCurrentTotal mop_preferred: ", mop_preferred);
+		const cg_mop_map = await frappe.db.get_value("Customer Group", doc.customer_group, 'custom_mop');
+		if (cg_mop_map?.message) mop_preferred = cg_mop_map.message["custom_mop"];
+	}
 
 	if (mop_preferred == "UPI") upi.value = true;
 	else {
@@ -1502,33 +1506,39 @@ const ensurePaymentLinesInitialized = async (doc = invoice_doc.value) => {
 	}
 
 	// Karan: Adding code for Customer-MOP mapping
-	const r = await frappe.db.get_value("Mode of Payment", {'custom_customer_group': doc.customer_group}, 'mode_of_payment');
-	const mop_preferred = r.message["mode_of_payment"];
-	console.log("Payments.vue ensurePaymentLinesInitialized mop_preferred: ", mop_preferred);
+	let mop_preferred = "";
+	// Credit Customers are post-paid AVFS account customers
+	if (doc.customer_group == "Credit Customers") is_credit_sale.value = true;
+	else {
+		const r = await frappe.db.get_value("Mode of Payment", {'custom_customer_group': doc.customer_group}, 'mode_of_payment');
+		mop_preferred = r?.message["mode_of_payment"];
+		if (!mop_preferred) {
+			const cg_mop_map = await frappe.db.get_value("Customer Group", doc.customer_group, 'custom_mop');
+			if (cg_mop_map?.message) mop_preferred = cg_mop_map.message["custom_mop"];
+			console.log("Payments.vue ensurePaymentLinesInitialized mop_preferred: ", mop_preferred);
+		}
+		// Karan: adding functionality for Card charges
+		if (mop_preferred && doc.company != "Pour Tous Distribution Center") {
+			const check_tran_fee = await check_apply_chargeable_mop(mop_preferred);
+		}
 
-	let check_tran_fee = false;
-	// Karan: adding functionality for Card charges
-	if (doc.company != "Pour Tous Distribution Center") {
-		if (mop_preferred)
-			check_tran_fee = await check_apply_chargeable_mop(mop_preferred);
+		const initializedPayment = initializePaymentLinesForDialog(
+			doc,
+			currency_precision.value,
+			isCashLikePayment,
+			mop_preferred,
+		);
+		console.log("Payments.vue (ensurePaymentLinesInitialized) initializedPayment: ", initializedPayment); // Karan
+
+		if (doc.is_return) {
+			ensureReturnPaymentsAreNegative();
+		}
+
+		const preferredPayment = await syncPreferredPaymentToCurrentTotal(doc);
+		console.log("Payments.vue ensurePaymentLinesInitialized preferredPayment: ", preferredPayment);
+
+		return initializedPayment;
 	}
-
-	const initializedPayment = initializePaymentLinesForDialog(
-		doc,
-		currency_precision.value,
-		isCashLikePayment,
-		mop_preferred,
-	);
-	console.log("Payments.vue (ensurePaymentLinesInitialized) initializedPayment: ", initializedPayment); // Karan
-
-	if (doc.is_return) {
-		ensureReturnPaymentsAreNegative();
-	}
-
-	const preferredPayment = await syncPreferredPaymentToCurrentTotal(doc);
-	console.log("Payments.vue ensurePaymentLinesInitialized preferredPayment: ", preferredPayment);
-
-	return initializedPayment;
 };
 
 // Default a return to "Store as Credit?" (is_credit_return) when the original
@@ -2000,7 +2010,10 @@ const submit = async (_event, payment_received = false, print = false) => {
 						invoice_doc.value.custom_fs_transfer_status = "Billed Offline";
 						invoice_doc.value.remarks = "Billed Offline";
 					}
-					else {
+					// Currently Credit Limit is set at 1500, hence for higher amounts payments have to be collected before_submit
+					else if (invoice_doc.value.is_return || payment.amount > 1500) {
+					// else if (invoice_doc.value.is_return) {
+						// prevent return for unpaid FS Invoice
 						const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
 						console.log("fs_payment_response res: ", res);
 						// console.log("fs_payment_response res.remarks: ", res.remarks);
@@ -2008,14 +2021,24 @@ const submit = async (_event, payment_received = false, print = false) => {
 							console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
 
 							invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
+							invoice_doc.value.custom_fs_transaction_id = res.strDescription;
+
+							if (invoice_doc.value.remarks)
+								invoice_doc.value.remarks += "\n-------------\n" + res.remarks;
+							else invoice_doc.value.remarks = res.remarks;
+
 							if (res.custom_fs_transfer_status == "OK") {
-								if (invoice_doc.value.remarks)
-									invoice_doc.value.remarks += "\n-------------\n" + res.remarks;
-								else invoice_doc.value.remarks = res.remarks;
 								payment_received = true;
 							}
 							if (res.is_credit_sale) is_credit_sale.value = true;
 						}
+					}
+					else {
+						invoice_doc.value.custom_fs_transfer_status = "Pending";
+						is_credit_sale.value = true;
+						// payment_received = true;
+						// FS payments are now handled by Sales Invoice on_submit hook in custom app
+						// to avoid: FS payments happening before Invoice during-submit stock-outs
 					}
 					break;
 				}
@@ -2034,22 +2057,22 @@ const submit = async (_event, payment_received = false, print = false) => {
 				else if (payment.mode_of_payment === "ICICI UPI") {
 					tran_type = 16;
 					icici_pos = true;
-					//break;
 				}
 				else if (payment.mode_of_payment === "UPI") {
 					tran_type = 16;
 					icici_pos = true;
-					//break;
 				}
 				else if (payment.mode_of_payment === "RuPay") {
 					tran_type = 1;
 					icici_pos = true;
-					//break;
+				}
+				else if (payment.mode_of_payment === "Debit Card") {
+					tran_type = 1;
+					icici_pos = true;
 				}
 				else if (payment.mode_of_payment === "Cards") {
 					tran_type = 1;
 					icici_pos = true;
-					//break;
 				}
 
 				if (icici_pos) {
@@ -2666,7 +2689,8 @@ onMounted(() => {
 			paid_change.value = flt(data.doc.paid_change || 0, currency_precision.value);
 			credit_change.value = flt(data.doc.credit_change || 0, currency_precision.value);
 			last_payment_change_was_cash.value = null;
-			is_credit_sale.value = false;
+			if (invoice_doc.customer_group == "Credit Customers") is_credit_sale.value == true
+			else is_credit_sale.value = false;
 			is_write_off_change.value = false;
 
 			// Decide the credit-return default ONCE, when the return is first
