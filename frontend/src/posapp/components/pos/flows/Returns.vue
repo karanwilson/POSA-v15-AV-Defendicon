@@ -352,6 +352,7 @@ import { useUIStore } from "../../../stores/uiStore.js";
 import { computed } from "vue";
 import { useResponsive } from "../../../composables/core/useResponsive";
 import { useTheme } from "../../../composables/core/useTheme";
+import { useToastStore } from "../../../stores/toastStore.js";
 
 export default {
 	mixins: [format],
@@ -367,6 +368,7 @@ export default {
 		const returnsDialogMaxWidth = computed(() =>
 			responsive.windowWidth.value < 1100 ? "100vw" : "1120px",
 		);
+		const toastStore = useToastStore();
 		return {
 			invoiceStore,
 			uiStore,
@@ -374,6 +376,7 @@ export default {
 			returnsDialogWidth,
 			returnsDialogMaxWidth,
 			isDarkTheme: theme.isDark,
+			toastStore,
 		};
 	},
 	data: () => ({
@@ -762,6 +765,14 @@ export default {
 					this.toastStore.show({
 						title: __("Error loading invoice details"),
 						color: "error",
+					});
+					return;
+				}
+
+				if ("unpaid_fs_invoice" in return_doc && return_doc.unpaid_fs_invoice == "true") {
+					this.toastStore.show({
+						title: __("Returning an Unpaid FS Invoice: please 'cancel-amend(edit)-save-submit' using the 'Sales Invoice' form"),
+						color: "warning",
 					});
 					return;
 				}

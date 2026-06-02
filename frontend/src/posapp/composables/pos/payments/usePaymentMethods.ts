@@ -270,8 +270,14 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 
 		//console.log('r.message["custom_customer_group"]: ', r.message["custom_customer_group"]);
 		if (customer_group) {
-			if (r.message["custom_customer_group"] != customer_group)
-				return false;
+			if (r?.message["custom_customer_group"] != customer_group) {
+				const stricly_mapped_customer_group = ['Aurocard Payments', 'UPI Payments', 'MOP Cards', 'MOP RuPay', 'MOP Debit Card'];
+				if (stricly_mapped_customer_group.includes(customer_group)) {
+					return false;
+				}
+				// const cg_mop_map = await frappe.db.get_value("Customer Group", customer_group, 'custom_mop');
+				// if (cg_mop_map.message["custom_mop"] != mop)
+			}
 		}
 
 		const found = doc.taxes.find((row) => row.account_head === r.message["account_head"]);
@@ -544,11 +550,12 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 			let res = {};
 			if (r.message) {
 				res["custom_fs_transfer_status"] = r.message["custom_fs_transfer_status"];
+				res["strDescription"] = r.message["strDescription"]
 				// if (remarks)
 				// 	doc.remarks += "\n\n" + r.message["remarks"]; // in case of remarks
 				// else if (r.message["remarks"] != "Null") // In case of "Insufficient Funds"
-				if (r.message["remarks"] != "Null") // In case of "Insufficient Funds"
-					res["remarks"] = r.message["remarks"];
+				//if (r.message["remarks"] != "Null") // In case of "Insufficient Funds"
+				res["remarks"] = r.message["remarks"];
 
 				if (res["custom_fs_transfer_status"] == "OK") {
 					resolve(res);
