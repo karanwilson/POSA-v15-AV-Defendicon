@@ -12,12 +12,13 @@
 				color="primary"
 				:label="customerFieldLabel"
 				:placeholder="customerFieldPlaceholder"
-				:loading="isCustomerSearchLocked || isCustomerLookupPending"
-				v-model="internalCustomer"
+				:loading="isCustomerSearchLocked"
+				v-model="selectedCustomer"
 				:items="filteredCustomers"
 				:item-title="(item) => item.custom_fs_account_number? `${item.customer_name} - ${item.custom_fs_account_number}` : item.customer_name"
-				auto-select-first
 				item-value="name"
+				auto-select-first
+				return-object
 				:no-data-text="customerNoDataText"
 				hide-details
 				:customFilter="() => true"
@@ -38,12 +39,8 @@
 							<v-icon
 								v-bind="props"
 								class="icon-button"
-								role="button"
-								tabindex="0"
-								:aria-label="__('Edit customer')"
 								@mousedown.prevent.stop
 								@click.stop="edit_customer"
-								@keyup.enter.space.prevent.stop="edit_customer"
 							>
 								mdi-account-edit
 							</v-icon>
@@ -55,13 +52,8 @@
 								v-bind="props"
 								class="icon-button ml-1"
 								:class="{ 'disabled-icon': !networkOnline }"
-								role="button"
-								:tabindex="networkOnline ? 0 : -1"
-								:aria-label="__('Reload customers')"
-								:aria-disabled="!networkOnline"
 								@mousedown.prevent.stop
 								@click.stop="reload_customers"
-								@keyup.enter.space.prevent.stop="reload_customers"
 							>
 								mdi-reload
 							</v-icon>
@@ -71,19 +63,16 @@
 
 				<!-- Add icon (right) -->
 				<template #append-inner>
+					<span v-if="showCustomerLoadProgress" class="customer-load-percent">
+						{{ customerLoadPercent }}%
+					</span>
 					<v-tooltip :text="__('Add new customer')" content-class="posa-theme-tooltip">
 						<template #activator="{ props }">
 							<v-icon
 								v-bind="props"
 								class="icon-button"
-								:class="{ 'disabled-icon': isCustomerLookupPending }"
-								role="button"
-								:tabindex="isCustomerLookupPending ? -1 : 0"
-								:aria-label="__('Add new customer')"
-								:aria-disabled="isCustomerLookupPending"
 								@mousedown.prevent.stop
 								@click.stop="new_customer"
-								@keyup.enter.space.prevent.stop="new_customer"
 							>
 								mdi-plus
 							</v-icon>
@@ -104,13 +93,13 @@
 							<div v-html="`FS Account: ${item.raw.custom_fs_account_number}`"></div>
 						</v-list-item-subtitle>
 						<v-list-item-subtitle v-if="item.raw.tax_id">
-							<div>{{ __("TAX ID") }}: {{ item.raw.tax_id }}</div>
+							<div>TAX ID: {{ item.raw.tax_id }}</div>
 						</v-list-item-subtitle>
 						<v-list-item-subtitle v-if="item.raw.email_id">
-							<div>{{ __("Email") }}: {{ item.raw.email_id }}</div>
+							<div>Email: {{ item.raw.email_id }}</div>
 						</v-list-item-subtitle>
 						<v-list-item-subtitle v-if="item.raw.mobile_no">
-							<div>{{ __("Mobile No") }}: {{ item.raw.mobile_no }}</div>
+							<div>Mobile No: {{ item.raw.mobile_no }}</div>
 						</v-list-item-subtitle>
 						<!-- <v-list-item-subtitle v-if="item.raw.primary_address">
 							<div>Primary Address: {{ item.raw.primary_address }}</div>
@@ -126,12 +115,6 @@
 				class="customer-load-bar"
 				rounded
 			/>
-			<div v-if="showCustomerLoadProgress" class="customer-load-status" aria-live="polite">
-				<span class="customer-load-status__count">
-					{{ customerLoadedCountLabel }}
-				</span>
-				<span class="customer-load-status__percent"> {{ customerLoadPercent }}% </span>
-			</div>
 		</div>
 		<!-- Update customer modal -->
 		<div class="mt-4">
@@ -175,31 +158,13 @@
 	opacity: 0.95;
 }
 
-.customer-load-status {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 12px;
-	width: 100%;
-	margin-top: 6px;
-	padding: 0 10px;
+.customer-load-percent {
 	font-size: 0.72rem;
 	font-weight: 700;
-	line-height: 1.25;
+	margin-right: 8px;
 	color: rgb(var(--v-theme-primary));
-	box-sizing: border-box;
-	white-space: nowrap;
-}
-
-.customer-load-status__count {
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.customer-load-status__percent {
-	flex: 0 0 auto;
-	font-variant-numeric: tabular-nums;
+	min-width: 42px;
+	text-align: right;
 }
 
 .customer-autocomplete:hover {
@@ -240,9 +205,9 @@
 		padding-right: 0;
 	}
 
-	.customer-load-status {
-		padding: 0 4px;
-		font-size: 0.68rem;
+	.customer-load-percent {
+		min-width: 34px;
+		margin-right: 4px;
 	}
 }
 </style>
@@ -253,7 +218,6 @@ import { storeToRefs } from "pinia";
 import _ from "lodash";
 import UpdateCustomer from "../dialogs/customer/UpdateCustomer.vue";
 import { useCustomersStore } from "../../../stores/customersStore.js";
-import { customerMatchesSearchTerm } from "../../../stores/customers/customerSearch";
 import { useOnlineStatus } from "../../../composables/core/useOnlineStatus";
 import { useToastStore } from "../../../stores/toastStore.js";
 import { useUIStore } from "../../../stores/uiStore.js";
@@ -276,7 +240,6 @@ export default {
 			customers,
 			filteredCustomers,
 			loadingCustomers,
-			searchingCustomers,
 			isCustomerBackgroundLoading,
 			loadProgress,
 			customersLoaded,
@@ -285,12 +248,12 @@ export default {
 			customerInfo,
 		} = storeToRefs(customersStore);
 
-		const internalCustomer = ref(null);
-		const tempSelectedCustomer = ref(null);
+		//const itemText = ref(null); // to display the Customer's FS account number and community
+		//const internalCustomer = ref(null);
+		//const tempSelectedCustomer = ref(null);
 		const isMenuOpen = ref(false);
 		const customerDropdown = ref(null);
 		const readonlyState = ref(false);
-		const pendingCustomerSearchInput = ref(false);
 
 		let scrollContainer = null;
 
@@ -301,27 +264,23 @@ export default {
 			() => loadingCustomers.value || isCustomerBackgroundLoading.value,
 		);
 		const isCustomerSearchLocked = computed(() => loadingCustomers.value && customers.value.length === 0);
-		const isCustomerLookupPending = computed(
-			() => pendingCustomerSearchInput.value || searchingCustomers.value,
-		);
 		const customerLoadPercent = computed(() =>
 			Math.max(0, Math.min(100, Math.round(loadProgress.value || 0))),
 		);
-		const customerLoadedCountLabel = computed(
-			() => `${Number(loadedCustomerCount.value || 0).toLocaleString()} ${__("customers")}`,
-		);
 		const customerFieldLabel = computed(() =>
-			showCustomerLoadProgress.value ? frappe._("Loading customers") : frappe._("Name/ FS Account No./ Aurocard No."),
+			showCustomerLoadProgress.value
+				? `${frappe._("Loading customers")} ${customerLoadPercent.value}%`
+				: frappe._("Name/ FS Account No./ Aurocard No."),
 		);
 		const customerFieldPlaceholder = computed(() =>
-			showCustomerLoadProgress.value ? __("Loading customers...") : __("Search customer"),
+			showCustomerLoadProgress.value
+				? `${__("Loading customers...")} ${customerLoadPercent.value}%`
+				: __("Search customer"),
 		);
 		const customerNoDataText = computed(() =>
-			isCustomerLookupPending.value
-				? __("Searching customers...")
-				: showCustomerLoadProgress.value
-					? `${__("Loading customers...")} ${customerLoadPercent.value}%`
-					: __("Customers not found"),
+			showCustomerLoadProgress.value
+				? `${__("Loading customers...")} ${customerLoadPercent.value}%`
+				: __("Customers not found"),
 		);
 		const hasReadyCustomerCache = () =>
 			Boolean(
@@ -339,15 +298,8 @@ export default {
 			}).format(numericValue);
 		};
 
-		let customerSearchInputRequestId = 0;
-		const searchDebounce = _.debounce(async (term, requestId) => {
-			try {
-				await customersStore.queueSearch(term || "");
-			} finally {
-				if (requestId === customerSearchInputRequestId) {
-					pendingCustomerSearchInput.value = false;
-				}
-			}
+		const searchDebounce = _.debounce((term) => {
+			customersStore.queueSearch(term || "");
 		}, 300);
 
 		const ensureCustomersForProfile = (profile) => {
@@ -372,15 +324,15 @@ export default {
 			});
 		};
 
-		watch(
-			selectedCustomer,
-			(value) => {
-				if (!isMenuOpen.value) {
-					internalCustomer.value = value || null;
-				}
-			},
-			{ immediate: true },
-		);
+		// watch(
+		// 	selectedCustomer,
+		// 	(value) => {
+		// 		if (!isMenuOpen.value) {
+		// 			internalCustomer.value = value || null;
+		// 		}
+		// 	},
+		// 	{ immediate: true },
+		// );
 
 		watch(
 			() => props.pos_profile,
@@ -413,24 +365,22 @@ export default {
 			}
 		};
 
-		const commitPendingCustomerSelection = () => {
-			if (tempSelectedCustomer.value) {
-				internalCustomer.value = tempSelectedCustomer.value;
-				customersStore.setSelectedCustomer(tempSelectedCustomer.value);
-			} else if (selectedCustomer.value) {
-				internalCustomer.value = selectedCustomer.value;
-			}
-			tempSelectedCustomer.value = null;
-		};
+		// const commitPendingCustomerSelection = () => {
+			// if (tempSelectedCustomer.value) {
+			// 	internalCustomer.value = tempSelectedCustomer.value;
+			// 	customersStore.setSelectedCustomer(tempSelectedCustomer.value);
+			// } else if (selectedCustomer.value) {
+			// if (selectedCustomer.value) {
+			// 	internalCustomer.value = selectedCustomer.value;
+			// }
+			//tempSelectedCustomer.value = null;
+		// };
 
 		const onCustomerMenuToggle = (isOpen) => {
 			isMenuOpen.value = isOpen;
 			if (isOpen) {
-				searchDebounce.cancel();
-				customerSearchInputRequestId += 1;
-				pendingCustomerSearchInput.value = false;
-				void customersStore.queueSearch("");
-				internalCustomer.value = null;
+				// internalCustomer.value = null;
+				selectedCustomer.value = null;
 				nextTick(() => {
 					setTimeout(() => {
 						attachScrollListener();
@@ -440,11 +390,11 @@ export default {
 			}
 
 			detachScrollListener();
-			commitPendingCustomerSelection();
+			// commitPendingCustomerSelection();
 		};
 
 		const closeCustomerMenu = () => {
-			commitPendingCustomerSelection();
+			// commitPendingCustomerSelection();
 			const dropdown = customerDropdown.value;
 			if (dropdown) {
 				try {
@@ -462,16 +412,16 @@ export default {
 		};
 
 		const onCustomerChange = (val) => {
-			if (val && val === selectedCustomer.value) {
-				internalCustomer.value = selectedCustomer.value;
-				toastStore.show({
-					title: __("Customer already selected"),
-					color: "error",
-				});
-				return;
-			}
+			// if (val && val === selectedCustomer.value) {
+			// 	internalCustomer.value = selectedCustomer.value;
+			// 	toastStore.show({
+			// 		title: __("Customer already selected"),
+			// 		color: "error",
+			// 	});
+			// 	return;
+			// }
 
-			tempSelectedCustomer.value = val;
+			//tempSelectedCustomer.value = val;
 
 			if (isMenuOpen.value && val) {
 				closeCustomerMenu();
@@ -485,27 +435,22 @@ export default {
 				return;
 			}
 			const term = value || "";
-			customerSearchInputRequestId += 1;
-			pendingCustomerSearchInput.value = true;
-			searchDebounce(term, customerSearchInputRequestId);
+			searchDebounce(term);
 		};
 
 		const handleClearCustomer = (event) => {
-			tempSelectedCustomer.value = null;
-			internalCustomer.value = null;
+			//tempSelectedCustomer.value = null;
+			// internalCustomer.value = null;
+			selectedCustomer.value = null;
 			//customersStore.setSelectedCustomer(null);
 			customersStore.clearLocalState();
 		}
 
-		const handleEnter = async (event) => {
-			const inputText = event.target.value || "";
-			await searchDebounce.flush();
-			const matched = customers.value.find((customer) =>
-				customerMatchesSearchTerm(customer, inputText),
-			);
+		const handleEnter = (event) => {
+			// const inputText = event.target.value?.toLowerCase() || "";
 			// const matched = customers.value.find((cust) => {
 			// 	if (cust.custom_fs_account_number)
-			// 		if (cust.custom_fs_account_number == inputText)
+			// 		if (cust.custom_fs_account_number === inputText)
 			// 			return true;
 			// 	return (
 			// 		//cust.custom_fs_account_number?.toLowerCase().includes(inputText) ||
@@ -533,13 +478,6 @@ export default {
 		};
 
 		const new_customer = () => {
-			if (isCustomerLookupPending.value) {
-				toastStore.show({
-					title: __("Please wait for customer search to finish"),
-					color: "warning",
-				});
-				return;
-			}
 			customersStore.openUpdateCustomerDialog(null);
 		};
 
@@ -563,8 +501,9 @@ export default {
 			}
 
 			const first = list[0];
-			tempSelectedCustomer.value = first.name;
-			internalCustomer.value = first.name;
+			//tempSelectedCustomer.value = first.name;
+			// internalCustomer.value = first.name;
+			selectedCustomer.value = first.name;
 			customersStore.setSelectedCustomer(first.name);
 			closeCustomerMenu();
 		};
@@ -656,13 +595,11 @@ export default {
 			isCustomerBackgroundLoading,
 			showCustomerLoadProgress,
 			isCustomerSearchLocked,
-			isCustomerLookupPending,
 			customerLoadPercent,
-			customerLoadedCountLabel,
 			customerFieldLabel,
 			customerFieldPlaceholder,
 			customerNoDataText,
-			internalCustomer,
+			// internalCustomer,
 			effectiveReadonly,
 			onCustomerMenuToggle,
 			onCustomerChange,

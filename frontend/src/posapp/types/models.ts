@@ -178,6 +178,7 @@ export interface Customer {
   customer_name: string;
   custom_fs_account_number?: string; // Karan: AV Financial Service Account
   customer_group: string; // Karan
+  credit_limit: string; // Karan
   territory: string;
   email_id?: string;
   mobile_no?: string;

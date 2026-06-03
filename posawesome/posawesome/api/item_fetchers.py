@@ -11,6 +11,7 @@ from frappe.query_builder import DocType
 from frappe.query_builder.functions import Sum
 from frappe.utils import cint, flt, nowdate
 from frappe.utils.caching import redis_cache
+from posawesome.posawesome.api.item_processing.stock import get_batch_qty
 
 
 def _resolve_cache_ttl(ttl: Optional[int]) -> int:
@@ -360,6 +361,47 @@ def _fetch_batches(warehouse: str | Sequence[str], item_codes: Tuple[str, ...]):
 
     return rows
 
+def _fetch_item_batches(warehouse: str, item_code: str):
+    """Collect batch information (including expired entries) for the given warehouse."""
+
+    if not item_code or not warehouse:
+        return []
+
+    warehouses = _normalize_warehouses(warehouse)
+    if not warehouses:
+        return []
+
+    rows = []
+    batch_list = get_batch_qty(warehouse=warehouse, item_code=item_code)
+
+    if batch_list:
+        for batch in batch_list:
+            if batch.qty > 0 and batch.batch_no:
+                batch_doc = frappe.get_cached_doc("Batch", batch.batch_no)
+                if (
+                    str(batch_doc.expiry_date) > str(nowdate())
+                    or batch_doc.expiry_date in ["", None]
+                ) and batch_doc.disabled == 0:
+                    rows.append(
+                        frappe._dict(
+                            {
+                                "item_code": batch_doc.item,
+                                "batch_no": batch.batch_no,
+                                "batch_qty": batch.qty,
+                                "expiry_date": batch_doc.expiry_date,
+                                "batch_price": batch_doc.posa_batch_price,
+                                "manufacturing_date": batch_doc.manufacturing_date,
+                            }
+                        )
+                    )
+
+    return rows
+
+def get_item_batches(warehouse: Optional[str], item_code: str, ttl: Optional[int] = None):
+    """Fetch Item batch availability constrained to the provided warehouse."""
+
+    cached = _cache_wrapper(_batch_cache, ttl, _fetch_item_batches)
+    return cached(warehouse, item_code)
 
 def get_batches(warehouse: Optional[str], item_codes: Sequence[str], ttl: Optional[int] = None):
     """Fetch batch availability constrained to the provided warehouse."""
