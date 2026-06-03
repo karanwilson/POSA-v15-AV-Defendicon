@@ -206,6 +206,7 @@ export async function setCustomerStorage(customers: AnyRecord[]) {
 						customer.customer_name || customer.name || customer.customer,
 					custom_fs_account_number: customer.custom_fs_account_number, // Karan
 					customer_group: customer.customer_group, // Karan
+					credit_limit: customer.credit_limit, // Karan
 					mobile_no: customer.mobile_no,
 					email_id: customer.email_id,
 					primary_address: customer.primary_address,

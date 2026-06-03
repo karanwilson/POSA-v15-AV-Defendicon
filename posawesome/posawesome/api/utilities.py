@@ -5,7 +5,9 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe.utils import cstr, add_to_date, get_datetime
+from frappe.utils import cstr, add_to_date, get_datetime, flt
+from erpnext.stock.doctype.batch.batch import get_batch_qty, get_batch_no
+
 from typing import List, Dict, Any
 import time
 import os

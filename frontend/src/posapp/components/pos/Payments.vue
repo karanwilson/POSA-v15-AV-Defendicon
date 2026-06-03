@@ -1655,14 +1655,15 @@ const submit = async (_event, payment_received = false, print = false) => {
 
 				if (payment.mode_of_payment === "FS") {
 					//console.log("Payments.vue fsBalanceAvailable: ", fsBalanceAvailable);
+					console.log("Customer Credit Limit: ", customer_info.value.credit_limit);
 					if (isOffline()) {
 						console.log("isOffline(): ", isOffline());
 						is_credit_sale.value = true;
 						invoice_doc.value.custom_fs_transfer_status = "Billed Offline";
 						invoice_doc.value.remarks = "Billed Offline";
 					}
-					// Currently Credit Limit is set at 1500, hence for higher amounts payments have to be collected before_submit
-					else if (invoice_doc.value.is_return || payment.amount > 1500) {
+					// for amounts higher than the Current Customer Credit Limit: payments have to be collected before_submit
+					else if (invoice_doc.value.is_return || (customer_info.value.credit_limit && payment.amount > customer_info.value.credit_limit)) {
 					// else if (invoice_doc.value.is_return) {
 						// prevent return for unpaid FS Invoice
 						const res = await make_fs_payment(payment.amount, fsBalanceAvailable);

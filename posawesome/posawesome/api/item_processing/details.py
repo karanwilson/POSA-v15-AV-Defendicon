@@ -1,6 +1,6 @@
 import frappe
 from frappe.utils import nowdate
-from posawesome.posawesome.api.item_fetchers import ItemDetailAggregator, get_batches
+from posawesome.posawesome.api.item_fetchers import ItemDetailAggregator, get_batches, get_item_batches
 from posawesome.posawesome.api.item_processing.stock import get_stock_availability
 from posawesome.posawesome.api.utils import _ensure_pos_profile, log_perf_event
 from frappe import _, as_json
@@ -60,7 +60,8 @@ def get_item_detail(item, doc=None, warehouse=None, price_list=None, company=Non
     non_expired_batch_qty = 0
     serial_no_data = []
     if warehouse and item.get("has_batch_no"):
-        batch_rows = get_batches(warehouse, (item_code,))
+        # batch_rows = get_batches(warehouse, (item_code,))
+        batch_rows = get_item_batches(warehouse, item_code)
         for row in batch_rows:
             if not row.batch_no:
                 continue

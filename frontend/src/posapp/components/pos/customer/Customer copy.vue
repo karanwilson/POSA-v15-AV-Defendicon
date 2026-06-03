@@ -13,11 +13,12 @@
 				:label="customerFieldLabel"
 				:placeholder="customerFieldPlaceholder"
 				:loading="isCustomerSearchLocked"
-				v-model="internalCustomer"
+				v-model="selectedCustomer"
 				:items="filteredCustomers"
 				:item-title="(item) => item.custom_fs_account_number? `${item.customer_name} - ${item.custom_fs_account_number}` : item.customer_name"
-				auto-select-first
 				item-value="name"
+				auto-select-first
+				return-object
 				:no-data-text="customerNoDataText"
 				hide-details
 				:customFilter="() => true"
@@ -247,8 +248,9 @@ export default {
 			customerInfo,
 		} = storeToRefs(customersStore);
 
-		const internalCustomer = ref(null);
-		const tempSelectedCustomer = ref(null);
+		//const itemText = ref(null); // to display the Customer's FS account number and community
+		//const internalCustomer = ref(null);
+		//const tempSelectedCustomer = ref(null);
 		const isMenuOpen = ref(false);
 		const customerDropdown = ref(null);
 		const readonlyState = ref(false);
@@ -322,15 +324,15 @@ export default {
 			});
 		};
 
-		watch(
-			selectedCustomer,
-			(value) => {
-				if (!isMenuOpen.value) {
-					internalCustomer.value = value || null;
-				}
-			},
-			{ immediate: true },
-		);
+		// watch(
+		// 	selectedCustomer,
+		// 	(value) => {
+		// 		if (!isMenuOpen.value) {
+		// 			internalCustomer.value = value || null;
+		// 		}
+		// 	},
+		// 	{ immediate: true },
+		// );
 
 		watch(
 			() => props.pos_profile,
@@ -363,20 +365,22 @@ export default {
 			}
 		};
 
-		const commitPendingCustomerSelection = () => {
-			if (tempSelectedCustomer.value) {
-				internalCustomer.value = tempSelectedCustomer.value;
-				customersStore.setSelectedCustomer(tempSelectedCustomer.value);
-			} else if (selectedCustomer.value) {
-				internalCustomer.value = selectedCustomer.value;
-			}
-			tempSelectedCustomer.value = null;
-		};
+		// const commitPendingCustomerSelection = () => {
+			// if (tempSelectedCustomer.value) {
+			// 	internalCustomer.value = tempSelectedCustomer.value;
+			// 	customersStore.setSelectedCustomer(tempSelectedCustomer.value);
+			// } else if (selectedCustomer.value) {
+			// if (selectedCustomer.value) {
+			// 	internalCustomer.value = selectedCustomer.value;
+			// }
+			//tempSelectedCustomer.value = null;
+		// };
 
 		const onCustomerMenuToggle = (isOpen) => {
 			isMenuOpen.value = isOpen;
 			if (isOpen) {
-				internalCustomer.value = null;
+				// internalCustomer.value = null;
+				selectedCustomer.value = null;
 				nextTick(() => {
 					setTimeout(() => {
 						attachScrollListener();
@@ -386,11 +390,11 @@ export default {
 			}
 
 			detachScrollListener();
-			commitPendingCustomerSelection();
+			// commitPendingCustomerSelection();
 		};
 
 		const closeCustomerMenu = () => {
-			commitPendingCustomerSelection();
+			// commitPendingCustomerSelection();
 			const dropdown = customerDropdown.value;
 			if (dropdown) {
 				try {
@@ -408,16 +412,16 @@ export default {
 		};
 
 		const onCustomerChange = (val) => {
-			if (val && val === selectedCustomer.value) {
-				internalCustomer.value = selectedCustomer.value;
-				toastStore.show({
-					title: __("Customer already selected"),
-					color: "error",
-				});
-				return;
-			}
+			// if (val && val === selectedCustomer.value) {
+			// 	internalCustomer.value = selectedCustomer.value;
+			// 	toastStore.show({
+			// 		title: __("Customer already selected"),
+			// 		color: "error",
+			// 	});
+			// 	return;
+			// }
 
-			tempSelectedCustomer.value = val;
+			//tempSelectedCustomer.value = val;
 
 			if (isMenuOpen.value && val) {
 				closeCustomerMenu();
@@ -435,8 +439,9 @@ export default {
 		};
 
 		const handleClearCustomer = (event) => {
-			tempSelectedCustomer.value = null;
-			internalCustomer.value = null;
+			//tempSelectedCustomer.value = null;
+			// internalCustomer.value = null;
+			selectedCustomer.value = null;
 			//customersStore.setSelectedCustomer(null);
 			customersStore.clearLocalState();
 		}
@@ -496,8 +501,9 @@ export default {
 			}
 
 			const first = list[0];
-			tempSelectedCustomer.value = first.name;
-			internalCustomer.value = first.name;
+			//tempSelectedCustomer.value = first.name;
+			// internalCustomer.value = first.name;
+			selectedCustomer.value = first.name;
 			customersStore.setSelectedCustomer(first.name);
 			closeCustomerMenu();
 		};
@@ -593,7 +599,7 @@ export default {
 			customerFieldLabel,
 			customerFieldPlaceholder,
 			customerNoDataText,
-			internalCustomer,
+			// internalCustomer,
 			effectiveReadonly,
 			onCustomerMenuToggle,
 			onCustomerChange,

@@ -195,7 +195,12 @@ def get_customer_info(customer=None, company=None):
     res["posa_discount"] = customer.posa_discount
     res["name"] = customer.name
     res["customer_name"] = customer.customer_name
-    res["custom_fs_account_number"] = customer.custom_fs_account_number # AV Financial Service Account Number
+    res["custom_fs_account_number"] = customer.custom_fs_account_number # Karan: AV Financial Service Account Number
+    # Karan: Customer Credit Limit
+    if customer.credit_limits:
+        res["credit_limit"] = customer.credit_limits[0].credit_limit
+    else:
+        res["credit_limit"] = None
     res["customer_group_price_list"] = frappe.get_value(
         "Customer Group", customer.customer_group, "default_price_list"
     )

@@ -52,7 +52,7 @@ const BASE_SCHEMA = {
 	cache: "&key",
 	items: "&item_code,item_name,item_group,*barcodes,*name_keywords,*serials,*batches",
 	item_prices: "&[price_list+item_code],price_list,item_code",
-	customers: "&name,customer_name,customer_group,custom_fs_account_number,mobile_no,email_id,tax_id", // Karan: addeed customer_group for mode_of_payment matching
+	customers: "&name,customer_name,customer_group,custom_fs_account_number,credit_limit,mobile_no,email_id,tax_id", // Karan: Added customer_group (mop matching), AVFS Acc, Credit Limit
 	pos_profiles: "&name",
 	opening_shifts: "&name,user,pos_profile",
 	local_stock: "&key",
