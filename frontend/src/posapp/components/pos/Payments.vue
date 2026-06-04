@@ -1664,7 +1664,6 @@ const submit = async (_event, payment_received = false, print = false) => {
 					}
 					// for amounts higher than the Current Customer Credit Limit: payments have to be collected before_submit
 					else if (invoice_doc.value.is_return || (customer_info.value.credit_limit && payment.amount > customer_info.value.credit_limit)) {
-					// else if (invoice_doc.value.is_return) {
 						// prevent return for unpaid FS Invoice
 						const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
 						console.log("fs_payment_response res: ", res);
@@ -1781,10 +1780,13 @@ const submit = async (_event, payment_received = false, print = false) => {
 							console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
 
 							invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
+							invoice_doc.value.custom_fs_transaction_id = res.strDescription;
+
+							if (invoice_doc.value.remarks)
+								invoice_doc.value.remarks += "\n-------------\n" + res.remarks;
+							else invoice_doc.value.remarks = res.remarks;
+
 							if (res.custom_fs_transfer_status == "OK") {
-								if (invoice_doc.value.remarks)
-									invoice_doc.value.remarks += "\n-------------\n" + res.remarks;
-								else invoice_doc.value.remarks = res.remarks;
 								payment_received = true;
 							}
 							if (res.is_credit_sale) is_credit_sale.value = true;
