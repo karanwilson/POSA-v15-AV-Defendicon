@@ -17,6 +17,7 @@
 				:items="filteredCustomers"
 				:item-title="(item) => item.custom_fs_account_number? `${item.customer_name} - ${item.custom_fs_account_number}` : item.customer_name"
 				auto-select-first
+				return-object
 				item-value="name"
 				:no-data-text="customerNoDataText"
 				hide-details
@@ -372,11 +373,15 @@ export default {
 			});
 		};
 
+		// internalCustomer is set as a Customer object (for title field to work), whereas selectedCustomer is a Customer name string
+		// hence they should only sync when a null value (reset customer) (reactive) state is sent to this component
 		watch(
 			selectedCustomer,
 			(value) => {
+				//console.log("watch selectedCustomer value: ", value);
 				if (!isMenuOpen.value) {
-					internalCustomer.value = value || null;
+					// internalCustomer.value = value || null;
+					if (value == null) internalCustomer.value = value;
 				}
 			},
 			{ immediate: true },
@@ -413,13 +418,18 @@ export default {
 			}
 		};
 
+		// internalCustomer is set as a Customer object (for title field to work), whereas selectedCustomer is a Customer name string
+		// hence they should not be synced, except with a null value (reset customer) (reactive) state
 		const commitPendingCustomerSelection = () => {
 			if (tempSelectedCustomer.value) {
+				//console.log("tempSelectedCustomer: ", tempSelectedCustomer);
 				internalCustomer.value = tempSelectedCustomer.value;
-				customersStore.setSelectedCustomer(tempSelectedCustomer.value);
-			} else if (selectedCustomer.value) {
-				internalCustomer.value = selectedCustomer.value;
+				customersStore.setSelectedCustomer(tempSelectedCustomer.value.name);
 			}
+			// else if (selectedCustomer.value) {
+			// 	console.log("selectedCustomer: ", selectedCustomer);
+			// 	internalCustomer.value = selectedCustomer.value;
+			// }
 			tempSelectedCustomer.value = null;
 		};
 
@@ -461,14 +471,30 @@ export default {
 			detachScrollListener();
 		};
 
+		// internalCustomer is set as a Customer object (for title field to work), whereas selectedCustomer is a Customer name string
+		// hence they should only sync when a null value (reset customer) (reactive) state is sent to this component
 		const onCustomerChange = (val) => {
-			if (val && val === selectedCustomer.value) {
-				internalCustomer.value = selectedCustomer.value;
-				toastStore.show({
-					title: __("Customer already selected"),
-					color: "error",
-				});
-				return;
+			//console.log("onCustomerChange val: ", val);
+			if (val == null) {
+				if (val && val === selectedCustomer.value) {
+					internalCustomer.value = selectedCustomer.value;
+					toastStore.show({
+						title: __("Customer already selected"),
+						color: "error",
+					});
+					return;
+				}
+			}
+
+			else {
+				if (val && val.name === selectedCustomer.value) {
+					//internalCustomer.value = selectedCustomer.value;
+					toastStore.show({
+						title: __("Customer already selected"),
+						color: "error",
+					});
+					return;
+				}
 			}
 
 			tempSelectedCustomer.value = val;
@@ -476,11 +502,13 @@ export default {
 			if (isMenuOpen.value && val) {
 				closeCustomerMenu();
 			} else if (!isMenuOpen.value && val) {
-				customersStore.setSelectedCustomer(val);
+				if (val == null) customersStore.setSelectedCustomer(val);
+				else customersStore.setSelectedCustomer(val.name);
 			}
 		};
 
 		const onCustomerSearch = (value) => {
+			// console.log("onCustomerSearch value: ", value);
 			if (isCustomerSearchLocked.value) {
 				return;
 			}
@@ -498,6 +526,8 @@ export default {
 		}
 
 		const handleEnter = async (event) => {
+			console.log("event: ", event);
+			// const inputText = event.target.value?.toLowerCase() || "";
 			const inputText = event.target.value || "";
 			await searchDebounce.flush();
 			const matched = customers.value.find((customer) =>
