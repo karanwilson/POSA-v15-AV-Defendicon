@@ -12,7 +12,8 @@ export function useItemBatchSerial() {
 		) {
 			return false;
 		}
-		if (!item?.has_batch_no || item.batch_no) {
+		// if (!item?.has_batch_no || item.batch_no) {
+		if (!(item?.has_batch_no || item.batch_no)) { // Karan: adding the missing brackets to fix the logic
 			return false;
 		}
 		return (

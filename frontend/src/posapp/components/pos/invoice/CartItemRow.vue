@@ -226,6 +226,17 @@
 				</div>
 			</td>
 
+			<!-- Item Code (Optional) -->
+			<td
+				v-else-if="column.key === 'item_code'"
+				class="text-center"
+				:data-column-key="'item_code'"
+			>
+				<div class="d-flex align-center">
+					<span>{{ item.item_code }}</span>
+				</div>
+			</td>
+
 			<!-- Discount % (Optional) -->
 			<td
 				v-else-if="column.key === 'discount_percentage'"
@@ -556,6 +567,7 @@ const memoDeps = computed(() => {
 		props.item.posa_offer_applied,
 		props.item.is_free_item,
 		props.item.price_list_rate,
+		props.item.item_code,
 		props.isExpanded,
 		props.rowIndex,
 		props.keyboardMode,

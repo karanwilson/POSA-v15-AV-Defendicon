@@ -2030,7 +2030,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 							if (res.custom_fs_transfer_status == "OK") {
 								payment_received = true;
 							}
-							if (res.is_credit_sale) is_credit_sale.value = true;
+							else if (res.is_credit_sale) is_credit_sale.value = true;
 						}
 					}
 					else {
