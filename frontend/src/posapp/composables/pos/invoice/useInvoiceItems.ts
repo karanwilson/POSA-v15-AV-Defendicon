@@ -83,6 +83,13 @@ export function useInvoiceItems(invoiceType: Ref<string>) {
 			key: "item_name",
 			required: true,
 		},
+		{
+			title: __("Code"),
+			align: "start",
+			sortable: true,
+			key: "item_code",
+			required: false,
+		},
 		{ title: __("QTY"), key: "qty", align: "center", required: true },
 		{ title: __("UOM"), key: "uom", align: "center", required: false },
 		{
