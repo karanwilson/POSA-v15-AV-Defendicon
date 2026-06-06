@@ -362,10 +362,10 @@
 								color="primary"
 								class="pos-themed-input"
 								:label="frappe._('Batch No')"
-								@update:model-value="setBatchQty(item, $event)"
 								hide-details
 								prepend-inner-icon="mdi-package-variant-closed"
 							>
+							<!-- @update:model-value="setBatchQty(item, $event)" -->
 								<template v-slot:item="{ props, item }">
 									<v-list-item v-bind="props">
 										<v-list-item-title>{{ getRaw(item).batch_no }}</v-list-item-title>

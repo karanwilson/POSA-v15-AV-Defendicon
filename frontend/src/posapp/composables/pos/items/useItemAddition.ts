@@ -238,12 +238,14 @@ export function useItemAddition() {
 	let flushScheduled = false;
 
 	const flushPendingItems = async (context) => {
-		// Karan: console.log("label-G");
+		// Karan: 
+		// console.log("label-G");
 		if (!pendingItems.length && !pendingUpdates.size) return;
 
 		const currentItems = [...pendingItems];
 		const currentResolvers = [...pendingResolvers];
 		const currentUpdates = new Map(pendingUpdates);
+		// console.log("currentItems: ", currentItems);
 
 		pendingItems = [];
 		pendingResolvers = [];
@@ -252,7 +254,9 @@ export function useItemAddition() {
 
 		// 1. Process Updates
 		for (const [rowId, data] of currentUpdates) {
-			// Karan: console.log("label-H");
+			// Karan: 
+			// console.log("label-H");
+			// console.log("currentUpdates: ", currentUpdates);
 			const applyPendingUpdate = (line: any) => {
 				line.qty = toFiniteNumber(line.qty) + toFiniteNumber(data.qty);
 				calcStockQty(line, line.qty);
@@ -298,12 +302,14 @@ export function useItemAddition() {
 				currentItems,
 				insertIndex,
 			);
-			// Karan: console.log("addedItems", addedItems);
+			// Karan: 
+			// console.log("addedItems", addedItems);
 			const firstAddedIndex = insertIndex < 0 ? existingItemCount : 0;
 
 			addedItems.forEach((item, index) => {
 				const resolvers = currentResolvers[index] || []; // Array of resolvers
 				refreshMergeCacheEntry(context, item, firstAddedIndex + index);
+				// Karan: commented this code, if it removes existing batch allocations (multi-row item), and adds 1st batch_no for all
 				// Benchmark note: Use preloaded batch data to avoid extra fetches on auto-assign.
 				if (shouldAutoSetBatch(context, item)) {
 					callSetBatchQty(context, item, null, false);
@@ -519,19 +525,23 @@ export function useItemAddition() {
 				const shouldAllocateAcrossBatches =
 					new_item.has_batch_no &&
 					!new_item.batch_no &&
-					(shouldAutoSetBatch(context, new_item) ||
-						requestedStockQtyForBatching > 1);
-
+					(shouldAutoSetBatch(context, new_item));
+					// (shouldAutoSetBatch(context, new_item) ||
+					// 	requestedStockQtyForBatching > 1); // Karan: we need batch allocations for lesser Qty also
+				// console.log("useItemAddition shouldAllocateAcrossBatches: ", shouldAllocateAcrossBatches);
+				// console.log("useItemAddition new_item: ", new_item);
 				if (shouldAllocateAcrossBatches) {
 					// Get sorted availability (taking existing cart items into account)
 					const batches = getBatchAvailabilityForItem(
 						context,
 						new_item,
 					);
+					// console.log("useItemAddition batches: ", batches);					
 					// Filter for usable batches
 					const usable_batches = batches.filter(
 						(b) => b.available_qty > 0,
 					);
+					// console.log("useItemAddition usable_batches: ", usable_batches);
 
 					// Standard Case: If no usable batches or only one needed/available
 					if (usable_batches.length === 0) {
@@ -559,6 +569,9 @@ export function useItemAddition() {
 							allocations,
 							unallocated_stock_qty: remaining_qty,
 						});
+						// console.log("useItemAddition allocations: ", allocations);
+
+						// console.log("useItemAddition remaining_qty: ", remaining_qty);
 
 						// Never over-allocate a batch. Keeping the original line intact lets
 						// stock validation report stale/insufficient batch data accurately.
@@ -606,6 +619,7 @@ export function useItemAddition() {
 
 								extra_items.push(split_item);
 							}
+							// console.log("useItemAddition extra_items: ", extra_items);
 						}
 					}
 				} else if (shouldAutoSetBatch(context, new_item)) {
@@ -656,16 +670,19 @@ export function useItemAddition() {
 				}
 
 				if (index === -1 || context.new_line) {
-					// Karan: console.log("label-B");
+					// Karan: 
+					// console.log("label-B");
 					if (context.invoiceStore) {
 						// Use batching
 						return new Promise((resolve) => {
 							const toQueue = [new_item, ...extra_items];
-							// Karan: console.log("toQueue", toQueue);
+							// Karan: 
+							// console.log("toQueue", toQueue);
 							toQueue.forEach((line, lineIndex) => {
-								// Karan:  console.log("line", line);
+								// Karan:
+								// console.log("line", line);
 								// console.log("lineIndex", lineIndex);
-								// console.log("pendingItem", pendingItems);
+								// console.log("pendingItems", pendingItems);
 								const pendingIndex = pendingItems.findIndex(
 									(pendingItem) =>
 										pendingItem.item_code ===
@@ -675,9 +692,27 @@ export function useItemAddition() {
 										(pendingItem.batch_no || "") ===
 											(line.batch_no || ""),
 								);
-								// Karan: console.log("pendingIndex", pendingIndex);
+
+								// // Karan: for troubleshooting batch allocations:
+								// let pendingIndex = -1;
+								// console.log('pendingItems length: ', pendingItems.length);
+								// for (let i = 0; i < pendingItems.length; i++) {
+								// 	console.log(`pendingItem at index ${i}: `, pendingItems[i]);
+								// 	if (
+								// 		pendingItems[i].item_code === line.item_code &&
+								// 		pendingItems[i].uom === line.uom &&
+								// 		pendingItems[i].rate === line.rate &&
+								// 		(pendingItems[i].batch_no || "") === (line.batch_no || "")
+								// 	) {
+								// 		pendingIndex = i;
+								// 	}
+								// }
+
+								// console.log("pendingIndex", pendingIndex);
 
 								if (pendingIndex !== -1 && !context.new_line) {
+									// Karan: 
+									// console.log("label-C");
 									const pendingItem =
 										pendingItems[pendingIndex];
 									if (context.isReturnInvoice) {
@@ -690,7 +725,6 @@ export function useItemAddition() {
 											qtyOrOne(line.qty);
 									}
 									if (lineIndex === 0) {
-										// Karan: console.log("label-C");
 										const existingResolvers =
 											pendingResolvers[pendingIndex] ||
 											[];
@@ -698,8 +732,10 @@ export function useItemAddition() {
 										pendingResolvers[pendingIndex] =
 											existingResolvers;
 									}
+									// console.log("pendingItem", pendingItem);
 								} else {
-									// Karan: console.log("label-D");
+									// Karan: 
+									// console.log("label-D");
 									pendingItems.push(line);
 									pendingResolvers.push(
 										lineIndex === 0 ? [resolve] : [],
@@ -718,7 +754,8 @@ export function useItemAddition() {
 						if (context.appendNewItems)
 							context.items.push(new_item);
 						else context.items.unshift(new_item);
-						// Karan: console.log("A: context.items: ", context.items);
+						// Karan: 
+						// console.log("A: context.items: ", context.items);
 						refreshMergeCacheEntry(
 							context,
 							new_item,
@@ -737,7 +774,8 @@ export function useItemAddition() {
 								if (context.appendNewItems)
 									context.items.push(split_item);
 								else context.items.unshift(split_item);
-								// Karan: console.log("B: context.items: ", context.items);
+								// Karan: 
+								// console.log("B: context.items: ", context.items);
 								// Replicate basic setup for split items
 								refreshMergeCacheEntry(
 									context,
@@ -774,7 +812,8 @@ export function useItemAddition() {
 						handleItemExpansion(new_item, context);
 					}
 				} else {
-					// Karan: console.log("label-E");
+					// Karan: 
+					// console.log("label-E");
 
 					// Existing item update
 					const cur_item = context.items[index];
@@ -931,7 +970,8 @@ export function useItemAddition() {
 					}
 				}
 			} else {
-				// Karan: console.log("label-F");
+				// Karan: 
+				// console.log("label-F");
 				let cur_item = context.items[index];
 				const previousQty = cur_item.qty;
 				if (context.update_items_details) {

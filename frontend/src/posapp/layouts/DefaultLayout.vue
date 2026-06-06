@@ -1107,11 +1107,12 @@ const initializeData = async () => {
 };
 
 const fapiLogin = () => {
+	console.log("networkOnline.value: ", networkOnline.value);
 	//const vm = this;
-	if (isOffline()) {
-		console.log("isOffline(): ", isOffline());
-	}
-	else {
+	// if (isOffline()) {
+	// 	console.log("isOffline(): ", isOffline());
+	// }
+	if (networkOnline.value) {
 		console.log("fapiLogin");
 		frappe.call({
 			method: 'payments.payment_gateways.doctype.fs_settings.fs_settings.login',
@@ -1130,17 +1131,31 @@ const fapiLogin = () => {
 					});
 					}
 				}
+				else if (r.exc) {
+					frappe.msgprint(r.exc);
+					return;
+				}
 			},
+		});
+	}
+	else {
+		toastStore.show({
+			title: __("Network Status"),
+			detail: navigator.onLine
+				? __("Network Offline.")
+				: __("Network Online."),
+			color: navigator.onLine ? "info" : "warning",
 		});
 	}
 }
 
 const iciciPosCheckStatus = () => {
+	console.log("networkOnline.value: ", networkOnline.value);
 	//const vm = this;
-	if (isOffline()) {
-		console.log("isOffline(): ", isOffline());
-	}
-	else {
+	// if (isOffline()) {
+	// 	console.log("isOffline(): ", isOffline());
+	// }
+	if (networkOnline.value) {
 		console.log("icici_check_service");
 		frappe.call({
 			method: 'payments.payment_gateways.doctype.upi_settings.upi_settings.icici_check_service',
@@ -1157,7 +1172,20 @@ const iciciPosCheckStatus = () => {
 					});
 					}
 				}
+				else if (r.exc) {
+					frappe.msgprint(r.exc);
+					return;
+				}
 			},
+		});
+	}
+	else {
+		toastStore.show({
+			title: __("Network Status"),
+			detail: navigator.onLine
+				? __("Network Offline.")
+				: __("Network Online."),
+			color: navigator.onLine ? "info" : "warning",
 		});
 	}
 }

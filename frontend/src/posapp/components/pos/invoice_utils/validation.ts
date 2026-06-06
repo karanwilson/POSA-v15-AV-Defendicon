@@ -76,8 +76,6 @@ export async function validate(context: any) {
 
 			// Validate each return item
 			for (const item of context.items) {
-				// Normalize item codes
-				const normalized_return_item_code = item.item_code.trim().toUpperCase();
 
 				// Match the original invoice row via its exact reference (set in
 				// Returns.vue), not by item_code alone. A batch-tracked item can span
@@ -91,11 +89,42 @@ export async function validate(context: any) {
 				// to a fuzzy item_code match that could pick the wrong batch row and
 				// reintroduce the very bug this guards against.
 				const ref_name = item.sales_invoice_item || item.pos_invoice_item;
-				const original_item = ref_name
-					? original_items.find((orig) => orig.name === ref_name)
-					: original_items.find(
-							(orig) => orig.item_code.trim().toUpperCase() === normalized_return_item_code,
-						);
+
+				// Normalize item codes
+				const normalized_return_item_code = item.item_code.trim().toUpperCase();
+
+				// const original_item = ref_name
+				// 	? original_items.find((orig) => orig.name === ref_name)
+				// 	: original_items.find(
+				// 			(orig) => orig.item_code.trim().toUpperCase() === normalized_return_item_code,
+				// 		);
+
+				// Karan: adding logic for matching batches for multi row Items
+				let original_item;
+
+				if (ref_name) {
+					original_item = original_items.find((orig) => orig.name === ref_name)
+				}
+				else if (item.batch_no) {
+					// Normalize item batches
+					const normalized_return_batch_no = item.batch_no.trim().toUpperCase();
+
+					// Find matching item-batch in original invoice
+					original_item = original_items.find(
+						(orig) =>
+							orig.item_code.trim().toUpperCase() === normalized_return_item_code &&
+							orig.batch_no.trim().toUpperCase() === normalized_return_batch_no,
+					);
+				}
+				else {
+					// Normalize item codes
+					const normalized_return_item_code = item.item_code.trim().toUpperCase();
+
+					// Find matching item in original invoice
+					original_item = original_items.find(
+						(orig) => orig.item_code.trim().toUpperCase() === normalized_return_item_code,
+					);
+				}
 
 				if (!original_item) {
 					context.toastStore.show({
