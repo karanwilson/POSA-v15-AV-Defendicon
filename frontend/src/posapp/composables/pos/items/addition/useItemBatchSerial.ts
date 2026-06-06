@@ -7,13 +7,12 @@ declare const __: (_text: string) => string;
 export function useItemBatchSerial() {
 	const shouldAutoSetBatch = (context: any, item: any) => {
 		if (
-			!context?.setBatchQty ||
+			// !context?.setBatchQty || // Karan
 			!context?.pos_profile?.posa_auto_set_batch
 		) {
 			return false;
 		}
-		// if (!item?.has_batch_no || item.batch_no) {
-		if (!(item?.has_batch_no || item.batch_no)) { // Karan: adding the missing brackets to fix the logic
+		if (!item?.has_batch_no || item.batch_no) {
 			return false;
 		}
 		return (

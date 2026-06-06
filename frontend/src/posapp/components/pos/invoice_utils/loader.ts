@@ -86,6 +86,11 @@ export async function fetch_customer_balance(context: any) {
 			args: { customer: context.customer, company: context.pos_profile?.company },
 		});
 
+		if (r.exc) {
+			frappe.msgprint(r.exc);
+			return;
+		}
+
 		const balance = r?.message?.balance || 0;
 		const currency = r?.message?.currency || undefined;
 		context.customer_balance = balance;
@@ -119,18 +124,66 @@ export async function fetch_customer_balance(context: any) {
 	}
 }
 
+// Karan:
 export async function fetch_customer_fs_balance(context: any) {
 	try {
 		if (!context.customer) {
 			// reset FS indicators
 			return;
 		}
-
 		// Check if offline and use cached balance
-		if (isOffline()) {
-			console.log("isOffline(): ", isOffline());
+		// if (isOffline()) {
+		// }
+
+		console.log("navigator.onLine: ", navigator.onLine);
+
+		// Online mode: fetch from server and cache the result
+		// console.log("loader.ts context.customer: ", context.customer); // Karan
+		// console.log("loader.ts context.customerInfo: ", context.customerInfo); // Karan
+
+		if (navigator.onLine) {
+			const r = await frappe.call({
+				method: "payments.payment_gateways.doctype.fs_settings.fs_settings.get_account_max_amount",
+				args: { fs_acc_customer: context.customer },
+			});
+
+			if (r.exc) {
+					frappe.msgprint(r.exc);
+					return;
+				}
+
+			const fs_balance_available = (r?.message['Result'] == 'OK') ? r.message['maxAmount'] : "";
+			//console.log("loader.ts fs_balance_available: ", fs_balance_available);
+			//console.log("loader.ts r.message['Result']: ", r.message['Result']);
+			context.fs_balance_available = fs_balance_available;
+			context.fs_balance_message = r?.message['Result'];
+
+			if (r.message['Result'] != 'OK') {
+				context.toastStore.show({
+					title: __("FS API Response"),
+					text: r.message['Result'],
+					color: "error",
+				});
+				return;
+			}
+			if (r.message['maxAmount'] < 0) {
+				context.toastStore.show({
+					title: __("Invalid FS Balance: "),
+					text: __("Balance Response: {0}, Balance is less than 0", [r.message['Result']]),
+					color: "error",
+				});
+				context.customer = null;
+				return;
+			}
+
+			// Cache the balance for offline use
+			saveCustomerFsBalance(context.customer, fs_balance_available);
+		}
+
+		else {
+			const message = "Network availability: " + navigator.onLine;
 			context.toastStore.show({
-				title: __("Error fetching FS customer balance"),
+				title: message,
 				color: "error",
 			});
 			context.fs_balance_available = 0;
@@ -153,40 +206,6 @@ export async function fetch_customer_fs_balance(context: any) {
 			// }
 		}
 
-		// Online mode: fetch from server and cache the result
-		// console.log("loader.ts context.customer: ", context.customer); // Karan
-		// console.log("loader.ts context.customerInfo: ", context.customerInfo); // Karan
-		const r = await frappe.call({
-			method: "payments.payment_gateways.doctype.fs_settings.fs_settings.get_account_max_amount",
-			args: { fs_acc_customer: context.customer },
-		});
-
-		const fs_balance_available = (r.message['Result'] == 'OK') ? r.message['maxAmount'] : "";
-		//console.log("loader.ts fs_balance_available: ", fs_balance_available);
-		//console.log("loader.ts r.message['Result']: ", r.message['Result']);
-		context.fs_balance_available = fs_balance_available;
-		context.fs_balance_message = r?.message['Result'];
-
-		if (r.message['Result'] != 'OK') {
-			context.toastStore.show({
-				title: __("FS API Response"),
-				text: r.message['Result'],
-				color: "error",
-			});
-			return;
-		}
-		if (r.message['maxAmount'] < 0) {
-			context.toastStore.show({
-				title: __("Invalid FS Balance: "),
-				text: __("Balance Response: {0}, Balance is less than 0", [r.message['Result']]),
-				color: "error",
-			});
-			context.customer = null;
-			return;
-		}
-
-		// Cache the balance for offline use
-		saveCustomerFsBalance(context.customer, fs_balance_available);
 	} catch (error) {
 		console.error("Error fetching FS balance:", error);
 

@@ -1118,7 +1118,11 @@ const syncPreferredPaymentToCurrentTotal = async (doc = invoice_doc.value) => {
 
 	// Karan: Adding code for Customer-MOP mapping
 	const r = await frappe.db.get_value("Mode of Payment", {'custom_customer_group': doc.customer_group}, 'mode_of_payment');
-	const mop_preferred = r.message["mode_of_payment"];
+	if (r.exc) {
+		frappe.msgprint(r.exc);
+		// return;
+	}
+	const mop_preferred = r?.message["mode_of_payment"];
 	if (!mop_preferred) {
 		console.log("Payments.vue syncPreferredPaymentToCurrentTotal mop_preferred: ", mop_preferred);
 		const cg_mop_map = await frappe.db.get_value("Customer Group", doc.customer_group, 'custom_mop');
@@ -1244,6 +1248,10 @@ const ensurePaymentLinesInitialized = async (doc = invoice_doc.value) => {
 	if (doc.customer_group == "Credit Customers") is_credit_sale.value = true;
 	else {
 		const r = await frappe.db.get_value("Mode of Payment", {'custom_customer_group': doc.customer_group}, 'mode_of_payment');
+		if (r.exc) {
+			frappe.msgprint(r.exc);
+			// return;
+		}
 		mop_preferred = r?.message["mode_of_payment"];
 		if (!mop_preferred) {
 			const cg_mop_map = await frappe.db.get_value("Customer Group", doc.customer_group, 'custom_mop');
@@ -1654,42 +1662,52 @@ const submit = async (_event, payment_received = false, print = false) => {
 				console.log("payment.amount", payment.amount);
 
 				if (payment.mode_of_payment === "FS") {
-					//console.log("Payments.vue fsBalanceAvailable: ", fsBalanceAvailable);
 					console.log("Customer Credit Limit: ", customer_info.value.credit_limit);
-					if (isOffline()) {
-						console.log("isOffline(): ", isOffline());
-						is_credit_sale.value = true;
-						invoice_doc.value.custom_fs_transfer_status = "Billed Offline";
-						invoice_doc.value.remarks = "Billed Offline";
-					}
-					// for amounts higher than the Current Customer Credit Limit: payments have to be collected before_submit
-					else if (invoice_doc.value.is_return || (customer_info.value.credit_limit && payment.amount > customer_info.value.credit_limit)) {
-						// prevent return for unpaid FS Invoice
-						const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
-						console.log("fs_payment_response res: ", res);
-						// console.log("fs_payment_response res.remarks: ", res.remarks);
-						if (res) {
-							console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
+					//console.log("Payments.vue fsBalanceAvailable: ", fsBalanceAvailable);
+					// if (isOffline()) {
+					// }
 
-							invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
-							invoice_doc.value.custom_fs_transaction_id = res.strDescription;
+					if (navigator.onLine && fsBalanceAvailable != "") {
+						// for amounts higher than the Current Customer Credit Limit: payments have to be collected before_submit
+						if (invoice_doc.value.is_return || (customer_info.value.credit_limit && payment.amount > customer_info.value.credit_limit)) {
+							// prevent return for unpaid FS Invoice
+							const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
+							console.log("fs_payment_response res: ", res);
+							// console.log("fs_payment_response res.remarks: ", res.remarks);
+							if (res) {
+								console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
 
-							if (invoice_doc.value.remarks)
-								invoice_doc.value.remarks += "\n-------------\n" + res.remarks;
-							else invoice_doc.value.remarks = res.remarks;
+								invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
+								invoice_doc.value.custom_fs_transaction_id = res.strDescription;
 
-							if (res.custom_fs_transfer_status == "OK") {
-								payment_received = true;
+								if (invoice_doc.value.remarks)
+									invoice_doc.value.remarks += "\n-------------\n" + res.remarks;
+								else invoice_doc.value.remarks = res.remarks;
+
+								if (res.custom_fs_transfer_status == "OK") {
+									payment_received = true;
+								}
+								else if (res.is_credit_sale) is_credit_sale.value = true;
+								fsBalanceAvailable = "";
 							}
-							else if (res.is_credit_sale) is_credit_sale.value = true;
+						}
+						else {
+							invoice_doc.value.custom_fs_transfer_status = "Pending";
+							is_credit_sale.value = true;
+							// payment_received = true;
+							// FS payments are now handled by Sales Invoice on_submit hook in custom app
+							// to avoid: FS payments happening before Invoice during-submit stock-outs
+							fsBalanceAvailable = "";
 						}
 					}
 					else {
-						invoice_doc.value.custom_fs_transfer_status = "Pending";
+						console.log("navigator.onLine: ", navigator.onLine);
 						is_credit_sale.value = true;
-						// payment_received = true;
-						// FS payments are now handled by Sales Invoice on_submit hook in custom app
-						// to avoid: FS payments happening before Invoice during-submit stock-outs
+						invoice_doc.value.custom_fs_transfer_status = "Billed Offline";
+
+						if (invoice_doc.value.remarks)
+							invoice_doc.value.remarks += "\n-------------\n" + "Billed Offline";
+						else invoice_doc.value.remarks = "Billed Offline";
 					}
 					break;
 				}
@@ -1766,31 +1784,50 @@ const submit = async (_event, payment_received = false, print = false) => {
 
 				if (payment.mode_of_payment === "FS") {
 					//const res = await make_fs_payment(payment.amount, fsBalanceAvailable.value);
-					if (isOffline()) {
-						console.log("isOffline(): ", isOffline());
-						is_credit_sale.value = true;
-						invoice_doc.value.custom_fs_transfer_status = "Billed Offline";
-						invoice_doc.value.remarks = "Billed Offline";
+					// if (isOffline()) {
+					// if (is_credit_sale.value) {
+					// }
+					if (navigator.onLine && fsBalanceAvailable != "") {
+						// for amounts higher than the Current Customer Credit Limit: payments have to be collected before_submit
+						if (invoice_doc.value.is_return || (customer_info.value.credit_limit && payment.amount > customer_info.value.credit_limit)) {
+							// prevent return for unpaid FS Invoice
+							const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
+							console.log("fs_payment_response res: ", res);
+							// console.log("fs_payment_response res.remarks: ", res.remarks);
+							if (res) {
+								console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
+
+								invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
+								invoice_doc.value.custom_fs_transaction_id = res.strDescription;
+
+								if (invoice_doc.value.remarks)
+									invoice_doc.value.remarks += "\n-------------\n" + res.remarks;
+								else invoice_doc.value.remarks = res.remarks;
+
+								if (res.custom_fs_transfer_status == "OK") {
+									payment_received = true;
+								}
+								else if (res.is_credit_sale) is_credit_sale.value = true;
+								fsBalanceAvailable = "";
+							}
+						}
+						else {
+							invoice_doc.value.custom_fs_transfer_status = "Pending";
+							is_credit_sale.value = true;
+							// payment_received = true;
+							// FS payments are now handled by Sales Invoice on_submit hook in custom app
+							// to avoid: FS payments happening before Invoice during-submit stock-outs
+							fsBalanceAvailable = "";
+						}
 					}
 					else {
-						const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
-						console.log("fs_payment_response res: ", res);
-						// console.log("fs_payment_response res.remarks: ", res.remarks);
-						if (res) {
-							console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
+						console.log("navigator.onLine: ", navigator.onLine);
+						is_credit_sale.value = true;
+						invoice_doc.value.custom_fs_transfer_status = "Billed Offline";
 
-							invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
-							invoice_doc.value.custom_fs_transaction_id = res.strDescription;
-
-							if (invoice_doc.value.remarks)
-								invoice_doc.value.remarks += "\n-------------\n" + res.remarks;
-							else invoice_doc.value.remarks = res.remarks;
-
-							if (res.custom_fs_transfer_status == "OK") {
-								payment_received = true;
-							}
-							if (res.is_credit_sale) is_credit_sale.value = true;
-						}
+						if (invoice_doc.value.remarks)
+							invoice_doc.value.remarks += "\n-------------\n" + "Billed Offline";
+						else invoice_doc.value.remarks = "Billed Offline";
 					}
 					break;
 				}
@@ -2261,8 +2298,14 @@ onMounted(() => {
 			is_write_off_change.value = false;
 
 			// Karan: receiving FS Balance from Invoice.vue component
-			if (data.fs_balance_available)
+			// console.log("Payments.vue data.doc: ", data.doc);
+			if (data.fs_balance_available) {
 				fsBalanceAvailable = data.fs_balance_available;
+			}
+			// else if (data.doc.custom_fs_account_number) {
+			// 	fsBalanceAvailable = "";
+			// 	is_credit_sale.value = true;
+			// }
 			const initializedPayment = ensurePaymentLinesInitialized(data.doc);
 
 			if (data.doc.is_return) {

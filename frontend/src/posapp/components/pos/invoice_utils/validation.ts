@@ -74,13 +74,30 @@ export async function validate(context: any) {
 
 			// Validate each return item
 			for (const item of context.items) {
-				// Normalize item codes
-				const normalized_return_item_code = item.item_code.trim().toUpperCase();
 
-				// Find matching item in original invoice
-				const original_item = original_items.find(
-					(orig) => orig.item_code.trim().toUpperCase() === normalized_return_item_code,
-				);
+				// Karan: adding logic for matching batches for multi row Items
+				let original_item;
+				if (item.batch_no) {
+					// Normalize item codes & batches
+					const normalized_return_item_code = item.item_code.trim().toUpperCase();
+					const normalized_return_batch_no = item.batch_no.trim().toUpperCase();
+
+					// Find matching item-batch in original invoice
+					original_item = original_items.find(
+						(orig) =>
+							orig.item_code.trim().toUpperCase() === normalized_return_item_code &&
+							orig.batch_no.trim().toUpperCase() === normalized_return_batch_no,
+					);
+				}
+				else {
+					// Normalize item codes
+					const normalized_return_item_code = item.item_code.trim().toUpperCase();
+
+					// Find matching item in original invoice
+					original_item = original_items.find(
+						(orig) => orig.item_code.trim().toUpperCase() === normalized_return_item_code,
+					);
+				}
 
 				if (!original_item) {
 					context.toastStore.show({
