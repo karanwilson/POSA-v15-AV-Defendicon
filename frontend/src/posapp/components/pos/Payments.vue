@@ -1666,11 +1666,22 @@ const submit = async (_event, payment_received = false, print = false) => {
 					//console.log("Payments.vue fsBalanceAvailable: ", fsBalanceAvailable);
 					// if (isOffline()) {
 					// }
-
 					if (navigator.onLine && fsBalanceAvailable != "") {
 						// for amounts higher than the Current Customer Credit Limit: payments have to be collected before_submit
-						if (invoice_doc.value.is_return || (customer_info.value.credit_limit && payment.amount > customer_info.value.credit_limit)) {
-							// prevent return for unpaid FS Invoice
+						// return bills can also be collected before_submit as stock uncertainty does not exist
+						// if (invoice_doc.value.is_return || (customer_info.value.credit_limit && payment.amount > customer_info.value.credit_limit)) {
+						if (
+							pos_profile.value.company == "Pour Tous Purchasing Service" && !invoice_doc.value.is_return &&
+							(customer_info.value.credit_limit && payment.amount < customer_info.value.credit_limit)
+						) {
+							invoice_doc.value.custom_fs_transfer_status = "Pending";
+							is_credit_sale.value = true;
+							// payment_received = true;
+							// These FS payments are now handled by the Sales Invoice on_submit hook (hooks.py & api.py) in custom app
+							// to avoid: FS payments happening before Invoice during-submit stock-outs
+							fsBalanceAvailable = "";
+						}
+						else {
 							const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
 							console.log("fs_payment_response res: ", res);
 							// console.log("fs_payment_response res.remarks: ", res.remarks);
@@ -1691,14 +1702,6 @@ const submit = async (_event, payment_received = false, print = false) => {
 								fsBalanceAvailable = "";
 							}
 						}
-						else {
-							invoice_doc.value.custom_fs_transfer_status = "Pending";
-							is_credit_sale.value = true;
-							// payment_received = true;
-							// FS payments are now handled by Sales Invoice on_submit hook in custom app
-							// to avoid: FS payments happening before Invoice during-submit stock-outs
-							fsBalanceAvailable = "";
-						}
 					}
 					else {
 						console.log("navigator.onLine: ", navigator.onLine);
@@ -1708,6 +1711,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 						if (invoice_doc.value.remarks)
 							invoice_doc.value.remarks += "\n-------------\n" + "Billed Offline";
 						else invoice_doc.value.remarks = "Billed Offline";
+						fsBalanceAvailable = "";
 					}
 					break;
 				}
@@ -1789,8 +1793,20 @@ const submit = async (_event, payment_received = false, print = false) => {
 					// }
 					if (navigator.onLine && fsBalanceAvailable != "") {
 						// for amounts higher than the Current Customer Credit Limit: payments have to be collected before_submit
-						if (invoice_doc.value.is_return || (customer_info.value.credit_limit && payment.amount > customer_info.value.credit_limit)) {
-							// prevent return for unpaid FS Invoice
+						// return bills can also be collected before_submit as stock uncertainty does not exist
+						// if (invoice_doc.value.is_return || (customer_info.value.credit_limit && payment.amount > customer_info.value.credit_limit)) {
+						if (
+							pos_profile.value.company == "Pour Tous Purchasing Service" && !invoice_doc.value.is_return &&
+							(customer_info.value.credit_limit && payment.amount < customer_info.value.credit_limit)
+						) {
+							invoice_doc.value.custom_fs_transfer_status = "Pending";
+							is_credit_sale.value = true;
+							// payment_received = true;
+							// These FS payments are now handled by the Sales Invoice on_submit hook (hooks.py & api.py) in custom app
+							// to avoid: FS payments happening before Invoice during-submit stock-outs
+							fsBalanceAvailable = "";
+						}
+						else {
 							const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
 							console.log("fs_payment_response res: ", res);
 							// console.log("fs_payment_response res.remarks: ", res.remarks);
@@ -1811,14 +1827,6 @@ const submit = async (_event, payment_received = false, print = false) => {
 								fsBalanceAvailable = "";
 							}
 						}
-						else {
-							invoice_doc.value.custom_fs_transfer_status = "Pending";
-							is_credit_sale.value = true;
-							// payment_received = true;
-							// FS payments are now handled by Sales Invoice on_submit hook in custom app
-							// to avoid: FS payments happening before Invoice during-submit stock-outs
-							fsBalanceAvailable = "";
-						}
 					}
 					else {
 						console.log("navigator.onLine: ", navigator.onLine);
@@ -1828,6 +1836,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 						if (invoice_doc.value.remarks)
 							invoice_doc.value.remarks += "\n-------------\n" + "Billed Offline";
 						else invoice_doc.value.remarks = "Billed Offline";
+						fsBalanceAvailable = "";
 					}
 					break;
 				}
