@@ -469,15 +469,17 @@ const netInvoiceSettlementAmount = computed(() => {
 });
 
 const validatePayment = computed(() => {
-	const profile = pos_profile.value;
-	if (!profile || !profile.posa_allow_sales_order) {
-		return false;
-	}
-	if (invoiceType.value !== "Order") {
-		return false;
-	}
-	const doc = invoice_doc.value;
-	return !doc || !doc.posa_delivery_date;
+	setTimeout(() => {
+		const profile = pos_profile.value;
+		if (!profile || !profile.posa_allow_sales_order) {
+			return false;
+		}
+		if (invoiceType.value !== "Order") {
+			return false;
+		}
+		const doc = invoice_doc.value;
+		return !doc || !doc.posa_delivery_date;
+	}, 5000);
 });
 
 const getWriteOffLimit = (profile) => {
@@ -1723,6 +1725,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 					if (invoice_doc.value.remarks)
 						invoice_doc.value.remarks += "\n-------------\n" + "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
 					else invoice_doc.value.remarks = "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
+					if (invoice_doc.value.custom_fs_transfer_status) invoice_doc.value.custom_fs_transfer_status = ""
 					payment_received = true;
 					break;
 				}
@@ -1769,6 +1772,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 						invoice_doc.value.remarks += "\n-------------\n" + JSON.stringify(res); // record the json in the remarks string
 					else
 						invoice_doc.value.remarks = JSON.stringify(res); // record the json in the remarks string
+					if (invoice_doc.value.custom_fs_transfer_status) invoice_doc.value.custom_fs_transfer_status = ""
 					payment_received = true;
 					break;
 				}
@@ -1848,6 +1852,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 					if (invoice_doc.value.remarks)
 						invoice_doc.value.remarks += "\n-------------\n" + "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
 					else invoice_doc.value.remarks = "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
+					if (invoice_doc.value.custom_fs_transfer_status) invoice_doc.value.custom_fs_transfer_status = ""
 					payment_received = true;
 					break;
 				}
@@ -1860,6 +1865,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 						invoice_doc.value.remarks += "\n-------------\n" + "UPI Transaction ID: " + upi_trans_id.value;
 					else invoice_doc.value.remarks = "UPI Transaction ID: " + upi_trans_id.value;
 					invoice_doc.value.custom_upi_transaction_id = upi_trans_id.value;
+					if (invoice_doc.value.custom_fs_transfer_status) invoice_doc.value.custom_fs_transfer_status = ""
 					payment_received = true;
 					break;
 				}
