@@ -536,6 +536,7 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
     const make_fs_payment = (
 		fs_amount: number,
 		fsBalanceAvailable: string,
+		credit_limit_balance: number
 	) => {
 		return new Promise(async (resolve, reject) => {
 			const doc = unref(invoiceDoc);
@@ -566,11 +567,20 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 				}
 				else if (res["custom_fs_transfer_status"] == "Insufficient Funds" ||
 					res["custom_fs_transfer_status"] == "Failed" || res["custom_fs_transfer_status"] == "Queued") {
-						res["is_credit_sale"] = true;
+						if (fs_amount > credit_limit_balance) {
+								stores.toastStore.show({
+									title: __("Insufficient Credit Limit Balance: {0}", [credit_limit_balance]),
+									color: "error",
+								});
+							reject("Insufficient Credit Limit Balance");
+						}
+						else {
+							res["is_credit_sale"] = true;
+							resolve(res);
+						}
 						//doc.custom_fs_transfer_status = "Insufficient Funds";
 						//doc.outstanding_amount = fs_amount;
 						//doc.due_date = frappe.datetime.month_end(); // setting the due_date for is_credit_sale (if set) to last day of the month
-						resolve(res);
 				}
 				else {
 					stores.toastStore.show({

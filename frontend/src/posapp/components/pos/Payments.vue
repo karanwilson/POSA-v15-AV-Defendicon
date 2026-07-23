@@ -1684,7 +1684,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 							fsBalanceAvailable = "";
 						}
 						else {
-							const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
+							const res = await make_fs_payment(payment.amount, fsBalanceAvailable, customer_info.value.credit_limit);
 							console.log("fs_payment_response res: ", res);
 							// console.log("fs_payment_response res.remarks: ", res.remarks);
 							if (res) {
@@ -1811,7 +1811,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 							fsBalanceAvailable = "";
 						}
 						else {
-							const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
+							const res = await make_fs_payment(payment.amount, fsBalanceAvailable, customer_info.value.credit_limit);
 							console.log("fs_payment_response res: ", res);
 							// console.log("fs_payment_response res.remarks: ", res.remarks);
 							if (res) {

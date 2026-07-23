@@ -41,7 +41,7 @@ interface InvoiceWatchersVm {
 	close_payments: () => void;
 	fetch_customer_details: () => void;
 	fetch_customer_balance: () => void;
-	fetch_customer_fs_balance: () => void;
+	fetch_customer_fs_balance: () => void; // Karan
 	reset_customer_fs_balance: () => void; // Karan
 	set_delivery_charges: () => void;
 	sync_invoice_customer_details: (_details?: Record<string, unknown>) => void;

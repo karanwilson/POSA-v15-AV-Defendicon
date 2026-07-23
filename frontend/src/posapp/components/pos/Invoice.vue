@@ -51,6 +51,8 @@
 										:customer="customer"
 										:fs_balance_available="fs_balance_available"
 										:fs_balance_message="fs_balance_message"
+										:fs_inv_pay_bal="fs_inv_pay_bal"
+										:subtotal="subtotal"
 									/>
 								</template>
 							</InvoiceCustomerSection>
@@ -398,6 +400,7 @@ export default {
 			customer_balance_loading: false,
 			fs_balance_available: "",
 			fs_balance_message: "",
+			fs_inv_pay_bal: true,
 			networkOnline: false,
 			total_tax: 0,
 			packed_dialog_items: [],
@@ -1148,6 +1151,28 @@ export default {
 						this.$refs.paymentConfirmationDialog?.focus?.();
 					}, 100);
 				});
+			}
+		},
+		subtotal(val) {
+			if (val) {
+				console.log("watching subtotal: val:: ", val);
+				// watch only when customer is set; exclude returns; exclude cases where balance_available is 'not yet set (null)' or is '-1'
+				if (this.customer && this.fs_balance_available != null && this.fs_balance_available >= 0 && val >= 0) {
+					if (val > this.fs_balance_available) {
+						this.fs_inv_pay_bal = false;
+						// this.dynamic_fs_balance_color = 'error';
+						// this.dynamic_fs_balance_icon = 'mdi-bank';
+						this.toastStore.show({
+							title: __("Insufficient Balance for this Invoice total"),
+							color: "warning",
+						});
+					}
+					else if (val < this.fs_balance_available || (val == 0 && this.fs_balance_available > 0)) {
+						this.fs_inv_pay_bal = true;
+						// this.dynamic_fs_balance_color = 'success';
+						// this.dynamic_fs_balance_icon = 'mdi-bank';
+					}
+				}
 			}
 		},
 	},
