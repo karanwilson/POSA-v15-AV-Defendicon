@@ -622,19 +622,19 @@ export function useScanProcessor(context: ScanProcessorContext) {
 
 			//if (qtyFromBarcode !== null) {
 				// Scale barcodes use a direct, faster lookup
-				const res = await frappe.call({
-					method: "posawesome.posawesome.api.items.	",
-					args: {
-						item: JSON.stringify({ item_code: searchCode }),
-						warehouse: pos_profile.value.warehouse,
-						price_list: active_price_list.value,
-						company: pos_profile.value.company,
-					},
-				});
-				if (res && res.message) {
-					newItem = res.message;
-				}
-			
+			const res = await frappe.call({
+				method: "posawesome.posawesome.api.items.get_item_detail",
+				args: {
+					item: JSON.stringify({ item_code: searchCode }),
+					warehouse: pos_profile.value.warehouse,
+					price_list: active_price_list.value,
+					company: pos_profile.value.company,
+				},
+			});
+			if (res && res.message) {
+				newItem = res.message;
+			}
+
 			// Karan: the below function call was leading to many errored fetches, and took very long, hence using the one above
 
 			//} else {
