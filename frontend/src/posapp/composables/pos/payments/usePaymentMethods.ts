@@ -543,6 +543,44 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 			// console.log("usePaymentMethods fsBalanceAvailable", fsBalanceAvailable);
 			// console.log("usePaymentMethods doc: ", doc);
 
+			if (doc.company == "Pour Tous Purchasing Service") {
+				// Validates if the requested cart quantities are available in the warehouse.
+				const warehouse = unref(posProfile)?.warehouse;
+
+				const cart_items = doc.items.map(item => ({
+					item_code: item.item_code,
+					qty: item.qty
+				}));
+
+				// console.log("doc.items: ", doc.items);
+				console.log("cart_items: ", cart_items);
+				console.log("unref(posProfile)?.warehouse: ", warehouse);
+
+				const unavailable_items = await frappe.call({
+					method: "pourtous.api.check_cart_stock",
+					args: {
+						cart_items: JSON.stringify(cart_items),
+						warehouse: warehouse,
+					},
+				});
+
+				if (unavailable_items.message && unavailable_items.message.length > 0) {
+					// Stock is insufficient, prevent payment initialization
+					console.log("unavailable_items.message: ", unavailable_items.message);
+
+					let error_msg = __("Items Out of Stock:\n\n");
+					unavailable_items.message.forEach(item => {
+						error_msg += `• ${item.item_code}: Requested ${item.requested}, Available: ${item.available}\n`;
+					});
+
+					stores.toastStore.show({
+						title: error_msg,
+						color: "warning",
+					});
+					reject("Items Out of Stock");
+				}
+			}
+
 			const r = await frappe.call({
 				method: "payments.payment_gateways.doctype.fs_settings.fs_settings.add_transfer_billing",
 				args: {
@@ -568,10 +606,10 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 				else if (res["custom_fs_transfer_status"] == "Insufficient Funds" ||
 					res["custom_fs_transfer_status"] == "Failed" || res["custom_fs_transfer_status"] == "Queued") {
 						if (fs_amount > credit_limit_balance) {
-								stores.toastStore.show({
-									title: __("Insufficient Credit Limit Balance: {0}", [credit_limit_balance]),
-									color: "error",
-								});
+							stores.toastStore.show({
+								title: __("Insufficient Credit Limit Balance: {0}", [credit_limit_balance]),
+								color: "error",
+							});
 							reject("Insufficient Credit Limit Balance");
 						}
 						else {

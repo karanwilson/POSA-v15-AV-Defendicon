@@ -1648,6 +1648,10 @@ const scheduleBackgroundStatusCheck = ({
 const submit = async (_event, payment_received = false, print = false) => {
 	// Karan: trigger the payments here
 
+	// resetting any old values
+	invoice_doc.value.custom_fs_transfer_status = ""
+	payment_received = false;
+
 	// if (pos_profile.value.company == 'Pour Tous Purchasing Service' || pos_profile.value.company == 'Auroville Bakery' ||
 	// 		pos_profile.value.company == 'AV Bakery Cafe' || pos_profile.value.company == 'AV Bakery Cafe Townhall') {
 	if (pos_profile.value.posa_enable_icici_pos_payments) {
@@ -1722,10 +1726,12 @@ const submit = async (_event, payment_received = false, print = false) => {
 					const aurocard_payment_response = await make_aurocard_payment(aurocard_pos_id.value, aurocard_trans_id.value);
 					console.log("aurocard_payment_response: ", aurocard_payment_response);
 
-					if (invoice_doc.value.remarks)
+					if (invoice_doc.value.remarks) {
 						invoice_doc.value.remarks += "\n-------------\n" + "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
-					else invoice_doc.value.remarks = "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
-					if (invoice_doc.value.custom_fs_transfer_status) invoice_doc.value.custom_fs_transfer_status = ""
+					}
+					else {
+						invoice_doc.value.remarks = "Aurocard POS ID: " + "PTPS POS " + aurocard_pos_id.value + "\n" + "Aurocard Transaction ID: " + aurocard_trans_id.value;
+					}
 					payment_received = true;
 					break;
 				}
@@ -1772,7 +1778,6 @@ const submit = async (_event, payment_received = false, print = false) => {
 						invoice_doc.value.remarks += "\n-------------\n" + JSON.stringify(res); // record the json in the remarks string
 					else
 						invoice_doc.value.remarks = JSON.stringify(res); // record the json in the remarks string
-					if (invoice_doc.value.custom_fs_transfer_status) invoice_doc.value.custom_fs_transfer_status = ""
 					payment_received = true;
 					break;
 				}

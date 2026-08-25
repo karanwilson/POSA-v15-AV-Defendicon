@@ -113,9 +113,10 @@ export async function validate(context: any) {
 				if (rate_diff > 0.01) {
 					context.toastStore.show({
 						title: __(`Rate mismatch for item ${item.item_code}`),
-						color: "error",
+						// color: "error",
+						color: "warning",
 					});
-					return false;
+					// return false;
 				}
 
 				// Compare quantities
