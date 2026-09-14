@@ -1348,7 +1348,7 @@ const paymentCurrencyContext = (doc = invoice_doc.value) => ({
 	pos_profile: pos_profile.value,
 });
 
-const syncPreferredPaymentToCurrentTotal = (doc = invoice_doc.value) => {
+const syncPreferredPaymentToCurrentTotal = async (doc = invoice_doc.value) => {
 	if (
 		!doc ||
 		!Array.isArray(doc.payments) ||
@@ -1627,6 +1627,7 @@ const focusFirstPaymentTarget = () => {
 	}
 
 	return focusSubmitButton();
+};
 
 // Karan
 const resetPaymentLines = (doc = invoice_doc.value) => {
