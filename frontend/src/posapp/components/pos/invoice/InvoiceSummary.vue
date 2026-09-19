@@ -809,8 +809,10 @@ defineExpose({
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: 14px;
-	padding: 15px 16px 15px 20px;
+	/* gap: 14px;
+	padding: 15px 16px 15px 20px; */
+	gap: 10px;
+	padding: 8px 16px 8px 20px;
 	border-radius: var(--pos-radius-md);
 	background: var(--pos-surface-muted);
 	border: 1px solid var(--pos-border-light);

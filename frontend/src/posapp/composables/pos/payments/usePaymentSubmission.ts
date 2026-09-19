@@ -1079,22 +1079,27 @@ export function usePaymentSubmission(options: PaymentSubmissionOptions) {
 				);
 			}
 			try {
-				await saveOfflineInvoice({ data, invoice: submissionDoc });
-				stores?.syncStore?.updatePendingCount();
-				stores?.toastStore?.show({
-					title: __("Invoice saved offline"),
-					color: "warning",
-				});
+				// await saveOfflineInvoice({ data, invoice: submissionDoc });
+				// stores?.syncStore?.updatePendingCount();
+				// stores?.toastStore?.show({
+				// 	title: __("Invoice saved offline"),
+				// 	color: "warning",
+				// });
 
-				if (print && onPrint) {
-					onPrint(doc);
-				}
+				// if (print && onPrint) {
+				// 	onPrint(doc);
+				// }
 
 				if (stores?.customersStore?.setSelectedCustomer) {
 					stores.customersStore.setSelectedCustomer(
 						profile?.customer || null,
 					);
 				}
+
+				stores?.toastStore?.show({
+					title: __("Browser is offline"),
+					color: "error",
+				});
 
 				if (onFinishNavigation) onFinishNavigation(true);
 

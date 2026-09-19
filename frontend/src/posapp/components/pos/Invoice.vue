@@ -19,7 +19,6 @@
 			}"
 			:class="[
 				'cards my-0 py-0 mt-3 resizable invoice-main-card',
-				'pos-themed-card',
 				{ 'return-mode': isReturnInvoice },
 				{ 'invoice-main-card--counter-grid': isCounterGridPresentation },
 			]"
@@ -38,7 +37,7 @@
 				</v-alert>
 				<div class="invoice-sections">
 					<div>
-						<v-card flat class="invoice-section-card pos-themed-card">
+						<v-card flat class="invoice-section-card">
 							<!-- <div class="invoice-section-heading">
 								<h3 class="invoice-section-heading__title">{{ __("Customer Details") }}</h3>
 							</div> -->
@@ -66,7 +65,7 @@
 						<v-card
 							v-if="pos_profile.posa_use_delivery_charges"
 							flat
-							class="invoice-section-card pos-themed-card"
+							class="invoice-section-card"
 						>
 							<!-- <div class="invoice-section-heading">
 								<h3 class="invoice-section-heading__title">{{ __("Delivery Charges") }}</h3>
@@ -93,7 +92,7 @@
 						<v-card
 							v-if="pos_profile.posa_allow_change_posting_date"
 							flat
-							class="invoice-section-card pos-themed-card"
+							class="invoice-section-card"
 						>
 							<!-- <div class="invoice-section-heading">
 								<h3 class="invoice-section-heading__title">{{ __("Posting and Price List") }}</h3>
@@ -125,7 +124,7 @@
 						<!-- <v-card
 							v-if="pos_profile.posa_allow_multi_currency"
 							flat
-							class="invoice-section-card pos-themed-card"
+							class="invoice-section-card"
 						>
 							<div class="invoice-section-heading">
 								<h3 class="invoice-section-heading__title">{{ __("Multi Currency") }}</h3>
@@ -160,7 +159,7 @@
 						</v-card> -->
 					</div>
 
-					<v-card flat class="invoice-section-card invoice-items-card pos-themed-card">
+					<v-card flat class="invoice-section-card invoice-items-card">
 						<!-- <div class="invoice-section-heading">
 							<h3 class="invoice-section-heading__title">{{ __("Invoice Items") }}</h3>
 						</div> -->

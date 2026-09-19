@@ -1,7 +1,7 @@
 <template>
 	<v-sheet
 		v-if="pos_profile?.posa_allow_change_posting_date"
-		class="pos-header-bar px-4 py-3 mb-2"
+		class="pos-header-bar px-2 py-1 mb-1"
 		rounded="lg"
 		elevation="1"
 	>
@@ -12,7 +12,7 @@
 				:sm="showPriceList ? 6 : 6"
 				:md="showPriceList ? 4 : 5"
 				:lg="showPriceList ? 4 : 5"
-				class="py-1"
+				class="py-0"
 			>
 				<VueDatePicker
 					ref="postingDatePicker"
@@ -35,7 +35,7 @@
 				sm="6"
 				md="4"
 				lg="4"
-				class="py-1"
+				class="py-0"
 			>
 				<v-select
 					v-model="internal_price_list"
@@ -58,7 +58,7 @@
 				:sm="showPriceList ? 12 : 6"
 				:md="showPriceList ? 4 : 7"
 				:lg="showPriceList ? 4 : 7"
-				class="py-1"
+				class="py-0"
 			>
 				<div class="balance-container">
 					<span class="balance-label">{{ __("Customer Balance") }}</span>
@@ -199,8 +199,8 @@ defineExpose({ focusPostingDate });
 	color: var(--pos-text-primary, #212121);
 	border-radius: 10px;
 	border: 1px solid transparent;
-	padding: 10px 36px 10px 12px;
-	font-size: 0.9375rem;
+	padding: 6px 32px 6px 10px;
+	font-size: 0.875rem;
 	transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -215,12 +215,12 @@ defineExpose({ focusPostingDate });
 
 .pos-date-picker :deep(.dp__input_icon) {
 	inset-inline-start: auto;
-	inset-inline-end: 10px;
+	inset-inline-end: 8px;
 	color: var(--pos-text-secondary, #757575);
 }
 
 .pos-date-picker :deep(.dp__input_icon_pad) {
-	padding-inline-start: 12px;
+	padding-inline-start: 10px;
 }
 
 .pos-date-picker :deep(.dp__menu) {
@@ -242,9 +242,9 @@ defineExpose({ focusPostingDate });
 }
 
 .sleek-select :deep(.v-field__input) {
-	padding-top: 8px;
-	padding-bottom: 8px;
-	font-size: 0.9375rem;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	font-size: 0.875rem;
 }
 
 /* ── Balance ── */
@@ -252,7 +252,7 @@ defineExpose({ focusPostingDate });
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
-	gap: 8px;
+	gap: 4px;
 	min-width: 0;
 	width: 100%;
 }
@@ -269,7 +269,7 @@ defineExpose({ focusPostingDate });
 
 .balance-skeleton :deep(.v-skeleton-loader__chip) {
 	border-radius: 16px;
-	height: 28px;
+	height: 24px;
 }
 
 .balance-chip {
@@ -280,7 +280,7 @@ defineExpose({ focusPostingDate });
 
 .balance-amount {
 	white-space: nowrap;
-	font-size: 1rem;
+	font-size: 0.875rem;
 }
 
 /* ── Mobile ── */

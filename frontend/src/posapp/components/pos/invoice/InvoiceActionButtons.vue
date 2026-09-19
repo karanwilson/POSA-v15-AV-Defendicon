@@ -476,7 +476,7 @@ const showMoreActions = computed(
 
 /* Special styling for the PAY button */
 .pay-btn {
-	min-height: 52px !important;
+	/* min-height: 52px !important; */
 	border: 1px solid var(--pos-action-pay-hover) !important;
 	font-weight: 750 !important;
 	font-size: 1.05rem !important;

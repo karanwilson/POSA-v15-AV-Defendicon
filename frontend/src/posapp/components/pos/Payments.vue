@@ -1310,39 +1310,6 @@ const buildProfilePaymentLines = () => {
 		}));
 };
 
-// Karan: adding functionality for Card charges
-const check_chargeable_mop = async (doc, mop_preferred) => {
-	const r = await frappe.call({
-		method: "posawesome.posawesome.api.payment_processing.utils.get_trans_fee_details",
-		args: {
-			company: doc.company,
-			mop: mop_preferred,
-		},
-		async: true,
-	});
-
-	const found = doc.taxes.find((row) => row.account_head === r.message["account_head"]);
-
-	// Karan: currently ERPNext Validation is failing due to general checks of included_in_print_rate
-	// however, this row specifically has included_in_print_rate unchecked '0': hoping the next version will pass this in Validation
-	// Else: create custom bypass for this row, with included_in_print_rate as '0'
-	if (!found && r.message["custom_transaction_fee_percentage"] > 0) {
-		const transaction_fee = flt(doc.grand_total * r.message["custom_transaction_fee_percentage"]/100, currency_precision.value);
-
-		doc.taxes.push({
-			account_head: r.message["account_head"],
-			charge_type: "Actual",
-			//charge_type: "On Net Total",
-			description: __("{0} Charges", [mop_preferred]),
-			//rate: r.message["custom_transaction_fee_percentage"],
-			tax_amount: transaction_fee,
-			cost_center: r.message["cost_center"],
-			included_in_print_rate: 0,
-		});
-		console.log("Payments.vue doc: ", doc);
-	}
-};
-
 const paymentCurrencyContext = (doc = invoice_doc.value) => ({
 	...(doc || {}),
 	pos_profile: pos_profile.value,
@@ -1370,14 +1337,14 @@ const syncPreferredPaymentToCurrentTotal = async (doc = invoice_doc.value) => {
 		frappe.msgprint(r.exc);
 		// return;
 	}
-	const mop_preferred = r?.message["mode_of_payment"];
+	let mop_preferred = r?.message["mode_of_payment"];
 	if (!mop_preferred) {
 		console.log("Payments.vue syncPreferredPaymentToCurrentTotal mop_preferred: ", mop_preferred);
 		const cg_mop_map = await frappe.db.get_value("Customer Group", doc.customer_group, 'custom_mop');
 		if (cg_mop_map?.message) mop_preferred = cg_mop_map.message["custom_mop"];
 	}
 
-	if (mop_preferred == "UPI") upi.value = true;
+	if (mop_preferred == "UPI" || mop_preferred == "ICICI UPI") upi.value = true;
 	else {
 		upi.value = false;
 		upi_trans_id.value = "";
@@ -1660,7 +1627,7 @@ const handleShowPayment = () => {
 	paymentVisible.value = true;
 	nextTick(() => {
 		setTimeout(() => {
-			focusFirstPaymentTarget();
+			// focusFirstPaymentTarget();
 			if (eventBus && typeof eventBus.emit === "function") {
 				eventBus.emit("payment_ui_ready");
 			}
@@ -2739,7 +2706,7 @@ onMounted(() => {
 	eventBus.on("server-online", () => syncStore.syncPendingInvoices());
 
 	if (eventBus) {
-		eventBus.on("send_invoice_doc_payment", (data) => {
+		eventBus.on("send_invoice_doc_payment", async (data) => {
 			invoiceStore.setInvoiceDoc(data.doc);
 			void refreshPaymentCustomerInfo(data.doc);
 			paid_change.value = flt(data.doc.paid_change || 0, currency_precision.value);
@@ -2752,8 +2719,8 @@ onMounted(() => {
 			// Decide the credit-return default ONCE, when the return is first
 			// loaded, so reopening the dialog / a failed submit never overrides a
 			// manual toggle change by the cashier.
-			if (doc.is_return) {
-				applyReturnCreditDefault(doc);
+			if (data.doc.is_return) {
+				applyReturnCreditDefault(data.doc);
 			}
 
 			// Karan: receiving FS Balance from Invoice.vue component
@@ -2765,7 +2732,7 @@ onMounted(() => {
 			// 	fsBalanceAvailable = "";
 			// 	is_credit_sale.value = true;
 			// }
-			const initializedPayment = ensurePaymentLinesInitialized(data.doc);
+			const initializedPayment = await ensurePaymentLinesInitialized(data.doc);
 			// const initializedPayment = ensurePaymentLinesInitialized(doc);
 			void initializePayments();
 

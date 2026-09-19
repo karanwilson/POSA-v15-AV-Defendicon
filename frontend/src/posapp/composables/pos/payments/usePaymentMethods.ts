@@ -280,7 +280,7 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 				company: doc.company,
 				mop: mop,
 			},
-			async: true,
+			async: false,
 		});
 
 		if (r.exc) {
@@ -290,7 +290,7 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 		//console.log('r.message["custom_customer_group"]: ', r.message["custom_customer_group"]);
 		if (customer_group) {
 			if (r?.message["custom_customer_group"] != customer_group) {
-				const stricly_mapped_customer_group = ['Aurocard Payments', 'UPI Payments', 'MOP Cards', 'MOP RuPay', 'MOP Debit Card'];
+				const stricly_mapped_customer_group = ['Aurocard Payments', 'UPI Payments', 'Card Payments', 'MOP Cards', 'MOP RuPay', 'MOP Debit Card', 'NEFT Payments', 'Cash Payments'];
 				if (stricly_mapped_customer_group.includes(customer_group)) {
 					return false;
 				}
@@ -648,7 +648,9 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 	// Karan
     const make_aurocard_payment = () => {
       return new Promise((resolve, reject) => {
-        if (!(aurocard_pos_id.value && aurocard_trans_id.value)) {
+		const doc = unref(invoiceDoc);
+
+		if ((doc.company == "Pour Tous Purchasing Service" || doc.company == "Pour Tous Canteen") && !(aurocard_pos_id.value && aurocard_trans_id.value)) {
 			stores.toastStore.show({
 				title: __("Please enter both 'Aurocard POS ID' and 'Aurocard Transaction ID"),
 				color: "warning",
