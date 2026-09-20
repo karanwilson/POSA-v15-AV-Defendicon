@@ -1124,14 +1124,14 @@ const syncPreferredPaymentToCurrentTotal = async (doc = invoice_doc.value) => {
 		frappe.msgprint(r.exc);
 		// return;
 	}
-	const mop_preferred = r?.message["mode_of_payment"];
+	let mop_preferred = r?.message["mode_of_payment"];
 	if (!mop_preferred) {
 		console.log("Payments.vue syncPreferredPaymentToCurrentTotal mop_preferred: ", mop_preferred);
 		const cg_mop_map = await frappe.db.get_value("Customer Group", doc.customer_group, 'custom_mop');
 		if (cg_mop_map?.message) mop_preferred = cg_mop_map.message["custom_mop"];
 	}
 
-	if (mop_preferred == "UPI") upi.value = true;
+	if (mop_preferred == "UPI" || mop_preferred == "ICICI UPI") upi.value = true;
 	else {
 		upi.value = false;
 		upi_trans_id.value = "";

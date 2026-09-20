@@ -802,16 +802,21 @@ export function usePaymentSubmission(options: PaymentSubmissionOptions) {
 				);
 			}
 			try {
-				await saveOfflineInvoice({ data, invoice: doc });
-				stores?.syncStore?.updatePendingCount();
-				stores?.toastStore?.show({
-					title: __("Invoice saved offline"),
-					color: "warning",
-				});
+				// await saveOfflineInvoice({ data, invoice: doc });
+				// stores?.syncStore?.updatePendingCount();
+				// stores?.toastStore?.show({
+				// 	title: __("Invoice saved offline"),
+				// 	color: "warning",
+				// });
 
-				if (print && onPrint) {
-					onPrint(doc);
-				}
+				// if (print && onPrint) {
+				// 	onPrint(doc);
+				// }
+
+				stores?.toastStore?.show({
+					title: __("Browser is offline"),
+					color: "error",
+				});
 
 				if (stores?.customersStore?.setSelectedCustomer) {
 					stores.customersStore.setSelectedCustomer(
