@@ -497,8 +497,11 @@ export const useCustomersStore = defineStore("customers", () => {
 					await setCustomerStorage(remoteResults);
 					const mergedResults = new Map<string, CustomerSummary>();
 					[...results, ...remoteResults].forEach((customer) => {
-						if (customer?.name) {
-							mergedResults.set(customer.name, customer);
+						// if (customer?.name) {
+						// 	mergedResults.set(customer.name, customer);
+						// }
+						if (customer?.custom_fs_account_number) {
+							mergedResults.set(customer.custom_fs_account_number, customer);
 						}
 					});
 					results = Array.from(mergedResults.values())

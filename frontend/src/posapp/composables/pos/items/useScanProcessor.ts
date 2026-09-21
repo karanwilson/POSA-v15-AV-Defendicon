@@ -618,7 +618,7 @@ export function useScanProcessor(context: ScanProcessorContext) {
 			//if (qtyFromBarcode !== null) {
 				// Scale barcodes use a direct, faster lookup
 				const res = await frappe.call({
-					method: "posawesome.posawesome.api.items.	",
+					method: "posawesome.posawesome.api.items.get_item_detail",
 					args: {
 						item: JSON.stringify({ item_code: searchCode }),
 						warehouse: pos_profile.value.warehouse,
