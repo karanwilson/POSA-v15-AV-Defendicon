@@ -306,12 +306,37 @@ def search_customers(pos_profile, search_term, limit=200):
         filters["customer_group"] = ["in", customer_groups]
 
     or_filters = [
-        ["name", "like", f"%{search_term}%"],
+        # ["name", "like", f"%{search_term}%"],
         ["customer_name", "like", f"%{search_term}%"],
         ["email_id", "like", f"%{search_term}%"],
         ["mobile_no", "like", f"%{mobile_fragment}%"],
         ["tax_id", "like", f"%{tax_fragment}%"],
     ]
+
+    # Karan: for exact matches in FS accounts
+    fs_account_candidates = frappe.get_all(
+        "Customer",
+        filters={
+            'custom_fs_account_number': search_term,
+            "disabled": 0
+        },
+        fields=[
+            "name",
+            "modified",
+            "mobile_no",
+            "email_id",
+            "tax_id",
+            "customer_name",
+            "custom_fs_account_number",
+            "loyalty_program",
+            "default_price_list",
+            "customer_group",
+            "territory",
+            "primary_address",
+        ],
+        order_by="name",
+        limit_page_length=max(result_limit * 5, 500),
+    )
 
     candidates = frappe.get_all(
         "Customer",
@@ -333,11 +358,20 @@ def search_customers(pos_profile, search_term, limit=200):
         order_by="name",
         limit_page_length=max(result_limit * 5, 500),
     )
-    return [
-        customer
-        for customer in candidates
-        if _customer_matches_search(customer, search_term)
-    ][:result_limit]
+
+    # Karan: for exact matches in FS accounts
+    if len(fs_account_candidates) > 0:
+        return [
+            customer
+            for customer in fs_account_candidates
+            # if _customer_matches_search(customer, search_term)
+        ][:result_limit]
+    else:
+        return [
+            customer
+            for customer in candidates
+            if _customer_matches_search(customer, search_term)
+        ][:result_limit]
 
 
 @frappe.whitelist()

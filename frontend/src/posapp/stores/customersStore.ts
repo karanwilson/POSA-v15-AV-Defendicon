@@ -493,15 +493,14 @@ export const useCustomersStore = defineStore("customers", () => {
 			if (!append && allowRemote && Boolean(requestedTerm)) {
 				const remoteResults =
 					await fetchServerCustomerMatches(requestedTerm);
+				// console.log("requestedTerm: ", requestedTerm);
+				// console.log("remoteResults: ", remoteResults);
 				if (remoteResults.length) {
 					await setCustomerStorage(remoteResults);
 					const mergedResults = new Map<string, CustomerSummary>();
 					[...results, ...remoteResults].forEach((customer) => {
-						// if (customer?.name) {
-						// 	mergedResults.set(customer.name, customer);
-						// }
-						if (customer?.custom_fs_account_number) {
-							mergedResults.set(customer.custom_fs_account_number, customer);
+						if (customer?.name) {
+							mergedResults.set(customer.name, customer);
 						}
 					});
 					results = Array.from(mergedResults.values())
