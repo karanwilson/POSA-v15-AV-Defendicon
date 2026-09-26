@@ -2047,14 +2047,27 @@ const submit = async (_event, payment_received = false, print = false) => {
 					break;
 				}
 
+				else if (payment.mode_of_payment === "UPI") {
+					const upi_payment_response = await make_upi_payment(upi_trans_id.value);
+					console.log("upi_payment_response: ", upi_payment_response);
+
+					if (invoice_doc.value.remarks)
+						invoice_doc.value.remarks += "\n-------------\n" + "UPI Transaction ID: " + upi_trans_id.value;
+					else invoice_doc.value.remarks = "UPI Transaction ID: " + upi_trans_id.value;
+					invoice_doc.value.custom_upi_transaction_id = upi_trans_id.value;
+					if (invoice_doc.value.custom_fs_transfer_status) invoice_doc.value.custom_fs_transfer_status = ""
+					payment_received = true;
+					break;
+				}
+
 				else if (payment.mode_of_payment === "ICICI UPI") {
 					tran_type = 16;
 					icici_pos = true;
 				}
-				else if (payment.mode_of_payment === "UPI") {
-					tran_type = 16;
-					icici_pos = true;
-				}
+				// else if (payment.mode_of_payment === "UPI") {
+				// 	tran_type = 16;
+				// 	icici_pos = true;
+				// }
 				else if (payment.mode_of_payment === "RuPay") {
 					tran_type = 1;
 					icici_pos = true;

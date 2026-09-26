@@ -664,7 +664,9 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 	// Karan
     const make_upi_payment = () => {
       return new Promise((resolve, reject) => {
-        if (!upi_trans_id.value) {
+		const doc = unref(invoiceDoc);
+
+        if ((doc.company == "Pour Tous Purchasing Service" || doc.company == "Pour Tous Canteen") && !upi_trans_id.value) {
 			stores.toastStore.show({
 				title: __("Please enter the 'UPI Transaction ID' OR enter remarks (eg.: Not Shared)"),
 				color: "warning",
