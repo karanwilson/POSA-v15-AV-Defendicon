@@ -349,6 +349,7 @@ def search_customers(pos_profile, search_term, limit=200):
             "email_id",
             "tax_id",
             "customer_name",
+            "custom_fs_account_number",
             "loyalty_program",
             "default_price_list",
             "customer_group",
