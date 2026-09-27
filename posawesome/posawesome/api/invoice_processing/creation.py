@@ -2041,6 +2041,13 @@ def _submit_invoice_once(invoice, data, submit_in_background=False):
     else:
         invoice_doc.remarks += "\n--------------------\n" + _build_invoice_remarks(invoice_doc) # Karan: for appending to existing billing remarks
 
+    invoice_doc.title = invoice_doc.customer_name # updating the Invoice title, in case of a change in Customer during checkout
+
+    if frappe.defaults.get_user_default("company") in (
+		"AV Bakery Cafe", "AV Bakery Cafe Townhall"
+	):
+        invoice_doc.custom_token_number = fetch_cafe_token()
+
     # calculating cash
     total_cash = 0
     if data.get("redeemed_customer_credit"):
@@ -2204,6 +2211,11 @@ def _submit_invoice_once(invoice, data, submit_in_background=False):
         AUTHORITATIVE_CASHIER_FIELD: authoritative_cashier,
     }
 
+def fetch_cafe_token():
+    token_number = frappe.db.get_value("Cafe Token", "Cafe Token", "token_number")
+    frappe.db.set_value("Cafe Token", "Cafe Token", "token_number", int(token_number)+1)
+    frappe.db.commit()
+    return token_number
 
 def _record_background_submission_failure(invoice, error, kwargs, user):
     error_msg = str(error)

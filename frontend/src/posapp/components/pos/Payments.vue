@@ -1,4 +1,4 @@
-﻿<!-- eslint-disable vue/multi-word-component-names -->
+﻿﻿<!-- eslint-disable vue/multi-word-component-names -->
 <template>
 	<div
 		ref="paymentRoot"
@@ -1332,17 +1332,20 @@ const syncPreferredPaymentToCurrentTotal = async (doc = invoice_doc.value) => {
 	}
 
 	// Karan: Adding code for Customer-MOP mapping
-	const r = await frappe.db.get_value("Mode of Payment", {'custom_customer_group': doc.customer_group}, 'mode_of_payment');
+	const r = await frappe.call({
+		method: "posawesome.posawesome.api.payment_processing.utils.customer_mop_mapping",
+		args: {
+			customer: doc.customer,
+			customer_group: doc.customer_group
+		},
+		async: false,
+	});
 	if (r.exc) {
 		frappe.msgprint(r.exc);
 		// return;
 	}
-	let mop_preferred = r?.message["mode_of_payment"];
-	if (!mop_preferred) {
-		console.log("Payments.vue syncPreferredPaymentToCurrentTotal mop_preferred: ", mop_preferred);
-		const cg_mop_map = await frappe.db.get_value("Customer Group", doc.customer_group, 'custom_mop');
-		if (cg_mop_map?.message) mop_preferred = cg_mop_map.message["custom_mop"];
-	}
+	const mop_preferred = r?.message["mop_preferred"]
+	// const customer_group = r?.message["customer_group"]
 
 	if (mop_preferred == "UPI" || mop_preferred == "ICICI UPI") upi.value = true;
 	else {
@@ -1479,21 +1482,27 @@ const ensurePaymentLinesInitialized = async (doc = invoice_doc.value) => {
 	}
 
 	// Karan: Adding code for Customer-MOP mapping
-	let mop_preferred = "";
+	const r = await frappe.call({
+		method: "posawesome.posawesome.api.payment_processing.utils.customer_mop_mapping",
+		args: {
+			customer: doc.customer,
+			customer_group: doc.customer_group
+		},
+		async: false,
+	});
+	if (r.exc) {
+		frappe.msgprint(r.exc);
+		// return;
+	}
+	const mop_preferred = r?.message["mop_preferred"]
+	const customer_group = r?.message["customer_group"]
+
+	console.log("Payments.vue ensurePaymentLinesInitialized mop_preferred: ", mop_preferred);
+	console.log("Payments.vue ensurePaymentLinesInitialized customer_group: ", customer_group);
+
 	// Credit Customers are post-paid AVFS account customers
-	if (doc.customer_group == "Credit Customers") is_credit_sale.value = true;
+	if (customer_group == "Credit Customers") is_credit_sale.value = true;
 	else {
-		const r = await frappe.db.get_value("Mode of Payment", {'custom_customer_group': doc.customer_group}, 'mode_of_payment');
-		if (r.exc) {
-			frappe.msgprint(r.exc);
-			// return;
-		}
-		mop_preferred = r?.message["mode_of_payment"];
-		if (!mop_preferred) {
-			const cg_mop_map = await frappe.db.get_value("Customer Group", doc.customer_group, 'custom_mop');
-			if (cg_mop_map?.message) mop_preferred = cg_mop_map.message["custom_mop"];
-			console.log("Payments.vue ensurePaymentLinesInitialized mop_preferred: ", mop_preferred);
-		}
 		// Karan: adding functionality for Card charges
 		if (mop_preferred && doc.company != "Pour Tous Distribution Center") {
 			const check_tran_fee = await check_apply_chargeable_mop(mop_preferred);

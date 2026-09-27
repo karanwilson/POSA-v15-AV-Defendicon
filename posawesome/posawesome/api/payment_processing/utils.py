@@ -151,3 +151,18 @@ def get_trans_fee_details(company, mop):
         "cost_center": frappe.db.get_value("Company", company, "cost_center"),
         "account_head": frappe.db.get_value("UPI Settings", "UPI Settings", "transaction_fee_account")
     }
+
+# Customer-MOP mapping
+@frappe.whitelist()
+def customer_mop_mapping(customer, customer_group=None):
+    if not customer_group:
+        customer_group = frappe.db.get_value("Customer", customer, 'customer_group')
+
+    mop_preferred = frappe.db.get_value("Mode of Payment", {'custom_customer_group': customer_group}, 'mode_of_payment')
+    if not mop_preferred:
+        mop_preferred = frappe.db.get_value("Customer Group", customer_group, 'custom_mop')
+
+    return {
+        "mop_preferred": mop_preferred,
+        "customer_group": customer_group
+    }
