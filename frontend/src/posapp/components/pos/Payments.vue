@@ -2225,14 +2225,16 @@ const getUpiConfirmation = async ( payment_received = false ) => {
 		invoice_doc.value.custom_pos_transfer_status = res["custom_pos_transfer_status"];
 
 		if ("TranType" in res) {
+			console.log('res["TranType"]: ', res["TranType"]);
 			if (res["TranType"] == "UPI") invoice_doc.value.custom_upi_transaction_id = res["TranId"];
 			else if (res["TranType"] == "Sale") invoice_doc.value.custom_card_transaction_id = res["TranId"];
-			else if (res["tran_type"] == 16) invoice_doc.value.custom_upi_transaction_id = res["TranId"]; // in case no match above
-			else if (res["tran_type"] == 1) invoice_doc.value.custom_card_transaction_id = res["TranId"];
+
+			else if (res["tran_type"] == 16 && "TranId" in res) invoice_doc.value.custom_upi_transaction_id = res["TranId"]; // in case no match above
+			else if (res["tran_type"] == 1 && "TranId" in res) invoice_doc.value.custom_card_transaction_id = res["TranId"];
 		}
 		else {
-			if (res["tran_type"] == 16) invoice_doc.value.custom_upi_transaction_id = res["TranId"];
-			else if (res["tran_type"] == 1) invoice_doc.value.custom_card_transaction_id = res["TranId"];
+			if (res["tran_type"] == 16 && "TranId" in res) invoice_doc.value.custom_upi_transaction_id = res["TranId"];
+			else if (res["tran_type"] == 1 && "TranId" in res) invoice_doc.value.custom_card_transaction_id = res["TranId"];
 		}
 
 		invoice_doc.value.remarks = JSON.stringify(res); // record the json in the remarks string

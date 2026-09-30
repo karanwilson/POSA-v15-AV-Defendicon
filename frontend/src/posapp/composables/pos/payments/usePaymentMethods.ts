@@ -3,6 +3,8 @@ import { ref, unref, type Ref, type ComputedRef } from "vue";
 import { getSmartTenderSuggestions } from "../../../../utils/smartTender";
 import { toCompanyCurrency } from "../../../utils/erpnextCurrency";
 import { isCashLikePaymentLine } from "../../../utils/cashTender";
+// Karan
+import { resolvePreferredPaymentLine } from "../../../utils/paymentInitialization";
 
 declare const frappe: any;
 declare const __: (_str: string, _args?: any[]) => string;
@@ -290,7 +292,8 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 		//console.log('r.message["custom_customer_group"]: ', r.message["custom_customer_group"]);
 		if (customer_group) {
 			if (r?.message["custom_customer_group"] != customer_group) {
-				const stricly_mapped_customer_group = ['Aurocard Payments', 'UPI Payments', 'Card Payments', 'MOP Cards', 'MOP RuPay', 'MOP Debit Card', 'NEFT Payments', 'Cash Payments'];
+				// const stricly_mapped_customer_group = ['Aurocard Payments', 'UPI Payments', 'Card Payments', 'MOP Cards', 'MOP RuPay', 'MOP Debit Card', 'NEFT Payments', 'Cash Payments'];
+				const stricly_mapped_customer_group = ['Aurocard Payments', 'Card Payments', 'MOP Cards', 'MOP RuPay', 'MOP Debit Card', 'NEFT Payments', 'Cash Payments'];
 				if (stricly_mapped_customer_group.includes(customer_group)) {
 					return false;
 				}
@@ -336,8 +339,15 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 			//console.log("Payments.vue syncPreferredPaymentToCurrentTotal updateResponse: ", updateResponse);
 
 			if (updateResponse?.message) {
-				updateResponse.message.payments = doc.payments; // updating calculated payments data
+				// updateResponse.message.payments = doc.payments; // updating calculated payments data
+				updateResponse.message.taxes = doc.taxes; // updating the calculated tax data
 				Object.assign(doc, updateResponse.message); // frontend update
+
+				const preferredPayment = resolvePreferredPaymentLine(doc, isCashLikePayment, mop);
+				if (!preferredPayment) {
+					return null;
+				}
+				set_full_amount(preferredPayment, doc.is_return);
 			}
 		}
 
