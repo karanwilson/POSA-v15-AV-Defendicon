@@ -55,6 +55,8 @@
 										:customer="customer"
 										:fs_balance_available="fs_balance_available"
 										:fs_balance_message="fs_balance_message"
+										:fs_inv_pay_bal="fs_inv_pay_bal"
+										:subtotal="subtotal"
 									/>
 								</template>
 							</InvoiceCustomerSection>
@@ -372,7 +374,11 @@ export default {
 		const { isOnline } = useOnlineStatus();
 
 		const { activeView, posProfile: livePosProfile } = storeToRefs(uiStore);
-		const { selectedCustomer, refreshToken: customerRefreshToken } = storeToRefs(customersStore);
+		const {
+			selectedCustomer,
+			customerInfo,
+			refreshToken: customerRefreshToken,
+		} = storeToRefs(customersStore);
 		const { currentCashier } = storeToRefs(employeeStore);
 		const {
 			items,
@@ -419,6 +425,7 @@ export default {
 			customersStore,
 			currentCashier,
 			selectedCustomer,
+			customerInfo,
 			customerRefreshToken,
 			invoiceType,
 			flowToLoad,
@@ -446,6 +453,7 @@ export default {
 			customer_balance_loading: false,
 			fs_balance_available: "",
 			fs_balance_message: "",
+			fs_inv_pay_bal: true,
 			networkOnline: false,
 			total_tax: 0,
 			packed_dialog_items: [],
@@ -1235,6 +1243,16 @@ export default {
 			this.new_line = data;
 		},
 		handleShowPaymentRequest() {
+			// console.log("this.customerInfo: ", this.customerInfo);
+			if (this.pos_profile.company == "Pour Tous Purchasing Service" && this.invoiceType != "Return" && this.fs_balance_available) {
+				if (this.subtotal > this.fs_balance_available && this.subtotal > this.customerInfo.credit_limit) {
+					this.toastStore.show({
+						title: __("Insufficient Balance for this Invoice total"),
+						color: "error",
+					});
+					return;
+				}
+			}
 			this.show_payment();
 		},
 		async resume_parked_order(draft) {
@@ -1475,6 +1493,28 @@ export default {
 						this.$refs.paymentConfirmationDialog?.focus?.();
 					}, 100);
 				});
+			}
+		},
+		subtotal(val) {
+			if (val) {
+				console.log("watching subtotal: val:: ", val);
+				// watch only when customer is set; exclude returns; exclude cases where balance_available is 'not yet set (null)' or is '-1'
+				if (this.customer && this.fs_balance_available != null && this.fs_balance_available >= 0 && val >= 0) {
+					if (val > this.fs_balance_available) {
+						this.fs_inv_pay_bal = false;
+						// this.dynamic_fs_balance_color = 'error';
+						// this.dynamic_fs_balance_icon = 'mdi-bank';
+						this.toastStore.show({
+							title: __("Insufficient Balance for this Invoice total"),
+							color: "warning",
+						});
+					}
+					else if (val < this.fs_balance_available || (val == 0 && this.fs_balance_available > 0)) {
+						this.fs_inv_pay_bal = true;
+						// this.dynamic_fs_balance_color = 'success';
+						// this.dynamic_fs_balance_icon = 'mdi-bank';
+					}
+				}
 			}
 		},
 	},

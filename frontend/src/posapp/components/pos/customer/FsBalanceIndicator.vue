@@ -30,6 +30,8 @@ interface Props {
 	networkOnline?: boolean;
 	fs_balance_available?: string;
 	fs_balance_message?: string;
+	fs_inv_pay_bal?: boolean;
+	subtotal: number;
 	customer: string;
 	//serverConnecting?: boolean;
 	isIpHost?: boolean;
@@ -40,6 +42,8 @@ const props = withDefaults(defineProps<Props>(), {
 	networkOnline: false,
 	fs_balance_available: "",
 	fs_balance_message: "",
+	fs_inv_pay_bal: true,
+	subtotal: 0,
 	customer: "",
 	//serverConnecting: false,
 	isIpHost: false,
@@ -91,8 +95,8 @@ const statusColor = computed(() => {
 		return "grey";
 
 	if (props.customer && fs_balance_available_float >= 0) {
-		console.log("Inside if (props.customer && fs_balance_available_float >= 0)");
-		return fs_balance_available_float > 0 ? "green" : "orange"; // FS Balance positive or zero
+		// console.log("Inside if (props.customer && fs_balance_available_float >= 0)");
+		return fs_balance_available_float > 0 && props.fs_inv_pay_bal ? "green" : "orange"; // FS Balance positive or zero
 	}
 
 	// Invalid FS Balance
@@ -102,7 +106,7 @@ const statusColor = computed(() => {
 
 	// Remote FS server not reachable
 	if (props.customer && !fs_balance_available_float) {
-		console.log("Inside if (props.customer && !fs_balance_available_float)");
+		// console.log("Inside if (props.customer && !fs_balance_available_float)");
 		return "red";
 	}
 
@@ -173,7 +177,11 @@ const statusText = computed(() => {
 
 	if (!props.enableFsPayments) return __(`FS Payments not enabled`);
 
-	else if (props.fs_balance_available) return __(`Connected to Remote FS Server`);
+	else if (props.fs_balance_available && (props.subtotal > 0 && props.fs_inv_pay_bal)) return __(`Connected to Remote FS Server, Balance Sufficient`);
+
+	else if (props.fs_balance_available && (props.subtotal == 0)) return __(`Connected to Remote FS Server`);
+
+	else if (props.fs_balance_available && !props.fs_inv_pay_bal) return __(`Connected to Remote FS Server, Balance Insufficient`);
 
 	else if (!props.fs_balance_available) return __(props.fs_balance_message);
 
