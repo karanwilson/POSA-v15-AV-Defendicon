@@ -12,16 +12,12 @@
 					class="payment-submit-btn payment-footer-btn"
 					data-pos-keyboard-target="payment-submit"
 					data-testid="payment-submit"
-					:aria-keyshortcuts="showKeyboardShortcuts ? 'Control+Enter Meta+Enter' : undefined"
 					@click="$emit('submit')"
 					:loading="loading"
 					:disabled="loading || validatePayment"
 					:class="{ 'submit-highlight': highlightSubmit }"
 				>
 					<span>{{ __("Submit") }}</span>
-					<kbd v-if="showKeyboardShortcuts" class="payment-footer-btn__shortcut">
-						Ctrl/⌘+Enter
-					</kbd>
 				</v-btn>
 			</v-col>
 			<v-col cols="12" sm="6" class="payment-action-col">
@@ -34,17 +30,11 @@
 					class="payment-submit-print-btn payment-footer-btn"
 					data-pos-keyboard-target="payment-submit-print"
 					data-testid="payment-submit-print"
-					:aria-keyshortcuts="
-						showKeyboardShortcuts ? 'Control+Shift+Enter Meta+Shift+Enter' : undefined
-					"
 					@click="$emit('submit-and-print')"
 					:loading="loading"
 					:disabled="loading || validatePayment"
 				>
 					<span>{{ __("Submit & Print") }}</span>
-					<kbd v-if="showKeyboardShortcuts" class="payment-footer-btn__shortcut">
-						Ctrl/⌘+Shift+Enter
-					</kbd>
 				</v-btn>
 			</v-col>
 			<v-col cols="12">

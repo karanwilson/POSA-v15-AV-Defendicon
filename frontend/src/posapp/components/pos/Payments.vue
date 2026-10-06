@@ -290,7 +290,6 @@
 				:validatePayment="validatePayment"
 				:highlightSubmit="highlightSubmit"
 				:compact="dialogMode"
-				:show-keyboard-shortcuts="counterGridMode"
 				@submit="submit"
 				@submit-and-print="submit(undefined, false, true)"
 				@cancel="back_to_invoice"
@@ -589,17 +588,15 @@ const netInvoiceSettlementAmount = computed(() => {
 });
 
 const validatePayment = computed(() => {
-	setTimeout(() => {
-		const profile = pos_profile.value;
-		if (!profile || !profile.posa_allow_sales_order) {
-			return false;
-		}
-		if (invoiceType.value !== "Order") {
-			return false;
-		}
-		const doc = invoice_doc.value;
-		return !doc || !doc.posa_delivery_date;
-	}, 5000);
+	const profile = pos_profile.value;
+	if (!profile || !profile.posa_allow_sales_order) {
+		return false;
+	}
+	if (invoiceType.value !== "Order") {
+		return false;
+	}
+	const doc = invoice_doc.value;
+	return !doc || !doc.posa_delivery_date;
 });
 
 const getWriteOffLimit = (profile) => {
@@ -1973,6 +1970,8 @@ const scheduleBackgroundStatusCheck = ({
 // Submission Wrapper
 const submit = async (_event, payment_received = false, print = false) => {
 	// Karan: trigger the payments here
+    // 1. ANCHOR: Drop any multi-clicks instantly before they do anything
+    if (loading.value) return;
 
 	// if (pos_profile.value.company == 'Pour Tous Purchasing Service' || pos_profile.value.company == 'Auroville Bakery' ||
 	// 		pos_profile.value.company == 'AV Bakery Cafe' || pos_profile.value.company == 'AV Bakery Cafe Townhall') {
@@ -2722,8 +2721,8 @@ watch(selectedCustomer, (newCustomer, oldCustomer) => {
 
 // Lifecycle
 onMounted(() => {
-	_shortcutHandlers.value.handlePaymentShortcut = handlePaymentShortcut.bind(this);
-	document.addEventListener("keydown", _shortcutHandlers.value.handlePaymentShortcut);
+	// _shortcutHandlers.value.handlePaymentShortcut = handlePaymentShortcut.bind(this);
+	// document.addEventListener("keydown", _shortcutHandlers.value.handlePaymentShortcut);
 
 	syncStore.syncPendingInvoices();
 	eventBus.on("network-online", () => syncStore.syncPendingInvoices());
@@ -2830,9 +2829,9 @@ onBeforeUnmount(() => {
 	eventBus.off("server-online");
 	clearBackgroundStatusCheck();
 
-	if (_shortcutHandlers.value.handlePaymentShortcut) {
-		document.removeEventListener("keydown", _shortcutHandlers.value.handlePaymentShortcut);
-	}
+	// if (_shortcutHandlers.value.handlePaymentShortcut) {
+	// 	document.removeEventListener("keydown", _shortcutHandlers.value.handlePaymentShortcut);
+	// }
 });
 
 defineExpose({
