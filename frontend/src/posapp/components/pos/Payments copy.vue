@@ -1973,15 +1973,13 @@ const submit = async (_event, payment_received = false, print = false) => {
     // 1. ANCHOR: Drop any multi-clicks instantly before they do anything
     if (loading.value) return;
 
-	if (!pos_profile.value || !invoice_doc.value || !Array.isArray(invoice_doc.value.payments)) {
+	if (!(pos_profile.value && invoice_doc.value && invoice_doc.value.payments)) {
 		toastStore.show({
-			title: "POS Profile or Invoice or 'Mode of Payment' is not set, please retry payment, or refresh the POS",
+			title: "POS Profile or 'Mode of Payment' is not set, please retry payment, or refresh the POS",
 			color: "error",
 		});
 		return;
 	}
-
-	try {
 
 	// if (pos_profile.value.company == 'Pour Tous Purchasing Service' || pos_profile.value.company == 'Auroville Bakery' ||
 	// 		pos_profile.value.company == 'AV Bakery Cafe' || pos_profile.value.company == 'AV Bakery Cafe Townhall') {
@@ -2009,7 +2007,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 						// if (invoice_doc.value.is_return || (customer_info.value.credit_limit && payment.amount > customer_info.value.credit_limit)) {
 						if (
 							pos_profile.value.company == "Pour Tous Purchasing Service" && !invoice_doc.value.is_return &&
-							(customer_info.value?.credit_limit && payment.amount < customer_info.value.credit_limit)
+							(customer_info.value.credit_limit && payment.amount < customer_info.value.credit_limit)
 						) {
 							invoice_doc.value.custom_fs_transfer_status = "Pending";
 							is_credit_sale.value = true;
@@ -2022,7 +2020,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 							const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
 							console.log("fs_payment_response res: ", res);
 							// console.log("fs_payment_response res.remarks: ", res.remarks);
-							if (res && typeof res === "object") {
+							if (res) {
 								console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
 
 								invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
@@ -2105,9 +2103,6 @@ const submit = async (_event, payment_received = false, print = false) => {
 				if (icici_pos) {
 					const res = await make_icici_upi_payment(tran_type, payment.amount, print);
 					console.log("pos_payment_response: ", res);
-					if (!res || typeof res !== "object") {
-						throw new Error("ICICI POS payment returned an invalid response.");
-					}
 					invoice_doc.value.custom_pos_transfer_status = res["custom_pos_transfer_status"];
 
 					// if the TranType gets changed in the checkCallbackStatus response from ICICI, it gets recorded here
@@ -2155,7 +2150,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 						// if (invoice_doc.value.is_return || (customer_info.value.credit_limit && payment.amount > customer_info.value.credit_limit)) {
 						if (
 							pos_profile.value.company == "Pour Tous Purchasing Service" && !invoice_doc.value.is_return &&
-							(customer_info.value?.credit_limit && payment.amount < customer_info.value.credit_limit)
+							(customer_info.value.credit_limit && payment.amount < customer_info.value.credit_limit)
 						) {
 							invoice_doc.value.custom_fs_transfer_status = "Pending";
 							is_credit_sale.value = true;
@@ -2168,7 +2163,7 @@ const submit = async (_event, payment_received = false, print = false) => {
 							const res = await make_fs_payment(payment.amount, fsBalanceAvailable);
 							console.log("fs_payment_response res: ", res);
 							// console.log("fs_payment_response res.remarks: ", res.remarks);
-							if (res && typeof res === "object") {
+							if (res) {
 								console.log("fs_payment_response res.custom_fs_transfer_status: ", res.custom_fs_transfer_status);
 
 								invoice_doc.value.custom_fs_transfer_status = res.custom_fs_transfer_status;
@@ -2234,14 +2229,6 @@ const submit = async (_event, payment_received = false, print = false) => {
 	await submitInvoiceWrapper(print, undefined, {
 		paymentReceived: payment_received,
 	});
-	} catch (err) {
-		console.error("Payment submission failed", err);
-		toastStore.show({
-			title: __("Payment could not be processed"),
-			color: "error",
-			detail: err?.message || __("An unexpected error occurred. Please retry."),
-		});
-	};
 };
 
 const getUpiConfirmation = async ( payment_received = false ) => {

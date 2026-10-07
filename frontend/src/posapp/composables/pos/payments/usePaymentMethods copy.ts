@@ -598,15 +598,7 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 		fsBalanceAvailable: string,
 	) => {
 		return new Promise(async (resolve, reject) => {
-			try {
-
 			const doc = unref(invoiceDoc);
-			if (!doc) {
-				throw new Error("Invoice is unavailable");
-			}
-			if (!Number.isFinite(fs_amount) || fs_amount == 0) {
-				throw new Error("Invalid payment amount");
-			}
 			// console.log("usePaymentMethods fsBalanceAvailable", fsBalanceAvailable);
 			// console.log("usePaymentMethods doc: ", doc);
 
@@ -614,16 +606,9 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 				// Validates if the requested cart quantities are available in the warehouse.
 				const warehouse = unref(posProfile)?.warehouse;
 
-				if (!warehouse) {
-					throw new Error("Warehouse is unavailable, please retry payment or refresh the POS window");
-				}
-				if (!Array.isArray(doc.items) || doc.items.length === 0) {
-					throw new Error("Invoice has no items to validate");
-				}
-
-				const cart_items = doc.items.map((item: any) => ({
+				const cart_items = doc.items.map(item => ({
 					item_code: item.item_code,
-					qty: item.qty,
+					qty: item.qty
 				}));
 
 				// console.log("doc.items: ", doc.items);
@@ -638,18 +623,12 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 					},
 				});
 
-				if (!unavailable_items || unavailable_items.exc) {
-					throw new Error(unavailable_items?.exc || "Unable to validate item stock");
-				}
-				if (unavailable_items?.message && !Array.isArray(unavailable_items.message)) {
-					throw new Error("Invalid response while validating item stock, please retry the payment");
-				}
-				if (Array.isArray(unavailable_items?.message) && unavailable_items.message.length > 0) {
+				if (unavailable_items.message && unavailable_items.message.length > 0) {
 					// Stock is insufficient, prevent payment initialization
 					console.log("unavailable_items.message: ", unavailable_items.message);
 
 					let error_msg = __("Items Out of Stock:\n\n");
-					unavailable_items.message.forEach((item: any) => {
+					unavailable_items.message.forEach(item => {
 						error_msg += `• ${item.item_code}: Requested ${item.requested}, Available: ${item.available}\n`;
 					});
 
@@ -658,7 +637,6 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 						color: "warning",
 					});
 					reject("Items Out of Stock");
-					return;
 				}
 			}
 
@@ -671,20 +649,21 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 				},
 			});
 
-			const res: Record<string, any> = {};
-			if (r?.message) {
+			let res = {};
+			if (r.message) {
 				res["custom_fs_transfer_status"] = r.message["custom_fs_transfer_status"];
-				res["strDescription"] = r.message["strDescription"];
+				res["strDescription"] = r.message["strDescription"]
 				// if (remarks)
 				// 	doc.remarks += "\n\n" + r.message["remarks"]; // in case of remarks
 				// else if (r.message["remarks"] != "Null") // In case of "Insufficient Funds"
 				//if (r.message["remarks"] != "Null") // In case of "Insufficient Funds"
 				res["remarks"] = r.message["remarks"];
 
-				if (res["custom_fs_transfer_status"] === "OK") {
+				if (res["custom_fs_transfer_status"] == "OK") {
 					resolve(res);
 				}
-				else if (doc.company !== "Pour Tous Purchasing Service" && ["Insufficient Funds", "Failed", "Queued"].includes(res["custom_fs_transfer_status"])) {
+				else if (doc.company != "Pour Tous Purchasing Service" && (res["custom_fs_transfer_status"] == "Insufficient Funds" ||
+					res["custom_fs_transfer_status"] == "Failed" || res["custom_fs_transfer_status"] == "Queued")) {
 						res["is_credit_sale"] = true;
 						//doc.custom_fs_transfer_status = "Insufficient Funds";
 						//doc.outstanding_amount = fs_amount;
@@ -693,32 +672,23 @@ export function usePaymentMethods(options: PaymentMethodsOptions) {
 				}
 				else {
 					stores.toastStore.show({
-						title: __(res["custom_fs_transfer_status"] || "Payment Unsuccessful"),
+						title: __(res["custom_fs_transfer_status"]),
 						color: "error",
 					});
-					reject(res["custom_fs_transfer_status"] || "Payment Unsuccessful");
+					reject(res);
 				}
 			}
-			else if (r?.exc) {
-				frappe.msgprint(String(r.exc));
-				reject(String(r.exc));
+			else if (r.exc) {
+				frappe.msgprint(r.exc);
+				reject(r.exc);
 			}
 			else {
 				stores.toastStore.show({
-					title: __("Payment Unsuccessful"),
+					title: __("Payment Unsuccessfull"),
 					color: "error",
 				});
-				res["error"] = "Payment Unsuccessful";
-				reject(String(res));
-			}
-
-			} catch (error: any) {
-				console.error("FS payment error:", error);
-				stores.toastStore.show({
-					title: __(error?.message || "Payment Unsuccessful"),
-					color: "error",
-				});
-				reject(error?.message);
+				res["error"] = "Payment Unsuccessfull";
+				reject(res);
 			}
 		})
     };
